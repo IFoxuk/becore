@@ -1,4 +1,4 @@
-﻿namespace becore.Scheme;
+﻿namespace becore.api.Scheme;
 
 public abstract class TimeBasedType<T>
 {
