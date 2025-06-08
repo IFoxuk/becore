@@ -1,0 +1,75 @@
+﻿@using Blazorise.Localization
+
+<Bar @ref="_barRef" @bind-Visible="@topbarVisible" Breakpoint="Breakpoint.Mobile" Background="Background.Primary" 
+     ThemeContrast="ThemeContrast.Light" Class="is-fixed-bottom is-hidden-desktop" Height="_barBrandRef.Height">
+    <BarBrand @ref="_barBrandRef">
+        <BarStart>
+            <BarItem>
+                <BarLink To="">
+                    <BarIcon Margin="Margin.Is2.FromEnd" IconName="IconName.Dashboard"/>
+                    becore
+                </BarLink>
+            </BarItem>
+        </BarStart>
+        <BarEnd>
+            <BarItem Height="_barRef.Height">
+                <BarLink Clicked="_offcanvasRef.Show">GitHub</BarLink>
+            </BarItem>
+        </BarEnd>
+    </BarBrand>
+</Bar>
+
+<Offcanvas @ref="_offcanvasRef" ShowBackdrop Placement="Placement.Bottom">
+    <OffcanvasHeader>
+        Offcanvas Bottom
+        <CloseButton Clicked="_offcanvasRef.Hide" />
+    </OffcanvasHeader>
+    <OffcanvasBody>
+        Offcanvas Content
+    </OffcanvasBody>
+</Offcanvas>
+
+@code {
+    private Bar _barRef = new Bar();
+    private BarBrand _barBrandRef = new BarBrand();
+    private Offcanvas _offcanvasRef = new Offcanvas();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await SelectCulture( "en-US" );
+
+        await base.OnInitializedAsync();
+    }
+
+    Task SelectCulture( string name )
+    {
+        LocalizationService!.ChangeLanguage( name );
+
+        return Task.CompletedTask;
+    }
+
+    private bool topbarVisible = false;
+
+    Task OnLayoutTypeChecked( string layoutType )
+    {
+        LayoutType = layoutType;
+
+        return LayoutTypeChanged.InvokeAsync( layoutType );
+    }
+
+    [Parameter] public EventCallback<bool> ThemeEnabledChanged { get; set; }
+
+    [Parameter] public EventCallback<bool> ThemeGradientChanged { get; set; }
+
+    [Parameter] public EventCallback<bool> ThemeRoundedChanged { get; set; }
+
+    [Parameter] public EventCallback<string> ThemeColorChanged { get; set; }
+
+    [Parameter] public string? LayoutType { get; set; }
+
+    [Parameter] public EventCallback<string> LayoutTypeChanged { get; set; }
+
+    [Inject] protected ITextLocalizerService? LocalizationService { get; set; }
+
+    [CascadingParameter] protected Theme? Theme { get; set; }
+}
