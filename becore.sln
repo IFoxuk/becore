@@ -5,6 +5,8 @@ VisualStudioVersion = 17.4.32916.344
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "becore", "becore\becore.csproj", "{A1073A31-9C1C-4B5F-8752-F4397F84E210}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "becore.api", "becore.api\becore.api.csproj", "{9BDF36C0-B329-4729-A1CB-5BD46AFFD26B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +21,10 @@ Global
 		{B202D843-6F6D-4BE1-ADAA-353ABE7B8E39}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B202D843-6F6D-4BE1-ADAA-353ABE7B8E39}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B202D843-6F6D-4BE1-ADAA-353ABE7B8E39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9BDF36C0-B329-4729-A1CB-5BD46AFFD26B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BDF36C0-B329-4729-A1CB-5BD46AFFD26B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BDF36C0-B329-4729-A1CB-5BD46AFFD26B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BDF36C0-B329-4729-A1CB-5BD46AFFD26B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

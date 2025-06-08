@@ -3,11 +3,11 @@
 public abstract class TimeBasedType<T>
 {
     public Guid Id { get; set; }
-    public T Value { get; set; }
-    public Guid ParentId { get; set; }
-    public TimeBasedType<T> Parent { get; set; }
-    public Guid ChildId { get; set; }
-    public TimeBasedType<T> Child { get; set; }
+    public required T Value { get; set; }
+    public Guid? ParentId { get; set; }
+    public TimeBasedType<T>? Parent { get; set; }
+    public Guid? ChildId { get; set; }
+    public TimeBasedType<T>? Child { get; set; }
     public DateTime CreatedAt { get; } = DateTime.Now;
 }
 
