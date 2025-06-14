@@ -26,3 +26,25 @@
 .blazor-error-boundary::after {
     content: "An error has occurred."
 }
+
+.press-start-2p-regular {
+    font-family: "Press Start 2P", system-ui;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 0.9em;
+}
+
+@font-face {
+    font-family: GNF;
+    font-style: normal;
+    font-weight: 400;
+    src: url("../font/GNF.woff2") format("opentype"),
+    url("../font/GNF.ttf") format("truetype");
+}
+
+.GNF-regular {
+    font-family: GNF, system-ui;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 1em;
+}

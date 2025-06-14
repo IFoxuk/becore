@@ -1,0 +1,68 @@
+﻿<Bar Breakpoint="Breakpoint.ExtraLarge" NavigationBreakpoint="Breakpoint.ExtraExtraLarge" 
+     ThemeContrast="ThemeContrast.Dark" Mode="BarMode.VerticalInline" CollapseMode="BarCollapseMode.Small" 
+     Class="is-hidden-touch press-start-2p-regular" Background="Background.Dark" Style="font-size: 0.8em">
+    <BarToggler />
+    <BarBrand>
+        <BarItem>
+            <BarLink To="">
+                <BarIcon IconName="customIcon" />
+                becore
+            </BarLink>
+        </BarItem>
+    </BarBrand>
+    <BarMenu>
+        <BarStart>
+            <BarItem>
+                <BarDropdown>
+                    <BarDropdownToggle>
+                        <BarIcon IconName="IconName.Edit"/>
+                        Addons
+                    </BarDropdownToggle>
+                    <BarDropdownMenu Class="GNF-regular" Style="font-size: 1.2em">
+                        <BarDropdownItem To="/simple-form">Behaviour packs</BarDropdownItem>
+                        <BarDropdownItem>Resource packs</BarDropdownItem>
+                        <BarDropdownItem>Script packs</BarDropdownItem>
+                    </BarDropdownMenu>
+                </BarDropdown>
+            </BarItem>
+            <BarItem>
+                <BarDropdown>
+                    <BarDropdownToggle>
+                        <BarIcon IconName="IconName.Edit" />
+                        Maps
+                    </BarDropdownToggle>
+                    <BarDropdownMenu Class="GNF-regular" Style="font-size: 1.2em">
+                        <BarDropdownItem>Survival</BarDropdownItem>
+                        <BarDropdownItem>Creative</BarDropdownItem>
+                        <BarDropdownItem>Minigame</BarDropdownItem>
+                        <BarDropdownItem>Thematic</BarDropdownItem>
+                    </BarDropdownMenu>
+                </BarDropdown>
+            </BarItem>
+        </BarStart>
+        <BarEnd>
+            <BarItem>
+                <BarLink To="/profile">
+                    <BarIcon IconName="IconName.User" />
+                    Профиль
+                </BarLink>
+            </BarItem>
+            <BarItem>
+                <BarLink To="/login">
+                    <BarIcon IconName="@("fa-solid fa-right-to-bracket")"/>
+                    Login
+                </BarLink>
+            </BarItem>
+            <BarItem>
+                <BarLink To="/logout">
+                    Logout
+                </BarLink>
+            </BarItem>
+        </BarEnd>
+    </BarMenu>
+</Bar>
+@code {
+    private bool pagesBarVisible = true;
+
+    RenderFragment customIcon =@<img src="/brand-logo.png" style="width:32px; height: 32px" />;
+}

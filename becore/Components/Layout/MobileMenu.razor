@@ -1,0 +1,156 @@
+﻿@using Blazorise.Localization
+
+<Bar @bind-Visible="@topbarVisible" Background="Background.Dark"
+     ThemeContrast="ThemeContrast.Dark" Class="is-fixed-bottom is-hidden-desktop" TextColor="TextColor.Light"
+     Height="@Height.Em(3.8)">
+    <BarBrand @ref="_barBrandRef" Class="press-start-2p-regular">
+            <BarItem Height="@Height.Em(4.2)">
+                <BarLink Height="Height.Max100" To="" Background="Background.Dark">
+                    <BarIcon Margin="Margin.Is2.FromEnd" IconName="IconName.Dashboard"/>
+                    becore
+                </BarLink>
+            </BarItem>
+            <BarItem Height="@Height.Em(4.2)" Flex="Flex.Fill">
+                <BarLink Height="Height.Max100" TextColor="TextColor.Light" Clicked="_modCanvas.Show"
+                         Class="press-start-2p-regular" Flex="Flex.Fill.JustifyContent.Center">
+                    Addons
+                </BarLink>
+            </BarItem>
+            <BarItem Height="@Height.Em(4.2)" Flex="Flex.Fill">
+                <BarLink Height="Height.Max100" TextColor="TextColor.Light" Clicked="_mapCanvas.Show"
+                         Class="press-start-2p-regular" Flex="Flex.Fill.JustifyContent.Center">Maps</BarLink>
+            </BarItem>
+            <BarItem Height="@Height.Em(4.2)" Flex="Flex.Fill">
+                <BarLink Height="Height.Max100" TextColor="TextColor.Light" Clicked="_otherCanvas.Show"
+                         Class="press-start-2p-regular" Flex="Flex.Fill.JustifyContent.Center">Other</BarLink>
+            </BarItem>
+    </BarBrand>
+</Bar>
+
+<Offcanvas @ref="_modCanvas" ShowBackdrop Placement="Placement.Bottom" Background="Background.Dark"
+           TextColor="TextColor.Light">
+    <OffcanvasHeader Class="press-start-2p-regular">
+        Addon type
+        <CloseButton Clicked="_modCanvas.Hide" />
+    </OffcanvasHeader>
+    <OffcanvasBody>
+        <ListGroup Flush Flex="Flex.Fill">
+            <ListGroupItem Background="Background.Dark">
+                <Button Block Class="GNF-regular">Behaviour pack</Button>
+            </ListGroupItem>
+            <ListGroupItem Background="Background.Dark">
+                <Button Block Class="GNF-regular">Resource pack</Button>
+            </ListGroupItem>
+            <ListGroupItem Background="Background.Dark">
+                <Button Block Class="GNF-regular">Script pack</Button>
+            </ListGroupItem>
+        </ListGroup>
+    </OffcanvasBody>
+</Offcanvas>
+
+<Offcanvas @ref="_mapCanvas" ShowBackdrop Placement="Placement.Bottom" Background="Background.Dark"
+           TextColor="TextColor.Light">
+    <OffcanvasHeader Class="press-start-2p-regular">
+        Map type
+        <CloseButton Clicked="_mapCanvas.Hide"/>
+    </OffcanvasHeader>
+    <OffcanvasBody>
+        <ListGroup Flush Flex="Flex.Fill">
+            <ListGroupItem Background="Background.Dark">
+                <Row Flex="Flex.Row">
+                    <Column ColumnSize="ColumnSize.IsHalf">
+                        <Button Block Class="GNF-regular">Survival</Button>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.IsHalf">
+                        <Button Block Class="GNF-regular">Creative</Button>
+                    </Column>
+                </Row>
+            </ListGroupItem>
+            <ListGroupItem Background="Background.Dark">
+                <Button Block Class="GNF-regular">Minigame</Button>
+            </ListGroupItem>
+            <ListGroupItem Background="Background.Dark">
+                <Button Block Class="GNF-regular">Thematic</Button>
+            </ListGroupItem>
+        </ListGroup>
+    </OffcanvasBody>
+</Offcanvas>
+
+<Offcanvas @ref="_otherCanvas" ShowBackdrop Placement="Placement.Bottom" Background="Background.Dark"
+           TextColor="TextColor.Light">
+    <OffcanvasHeader Class="press-start-2p-regular">
+        Other sections
+        <CloseButton Clicked="_otherCanvas.Hide" />
+    </OffcanvasHeader>
+    <OffcanvasBody>
+        <ListGroup Flush Flex="Flex.Fill">
+            <ListGroupItem Background="Background.Dark">
+                <Row Flex="Flex.Row">
+                    <Column ColumnSize="ColumnSize.IsHalf">
+                        <Button Block Class="GNF-regular">Log in</Button>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.IsHalf">
+                        <Button Block Class="GNF-regular">Sign up</Button>
+                    </Column>
+                </Row>
+            </ListGroupItem>
+            <ListGroupItem Background="Background.Dark">
+                <Button Block Class="GNF-regular">Log out</Button>
+            </ListGroupItem>
+            <ListGroupItem Background="Background.Dark">
+                <Button Block Class="GNF-regular">Profile</Button>
+            </ListGroupItem>
+            <ListGroupItem Background="Background.Dark">
+                <Button Block Class="GNF-regular">About us</Button>
+            </ListGroupItem>
+        </ListGroup>
+    </OffcanvasBody>
+</Offcanvas>
+
+@code {
+    private Bar _barRef = new Bar();
+    private BarBrand _barBrandRef = new BarBrand();
+    private Offcanvas _modCanvas = new Offcanvas();
+    private Offcanvas _mapCanvas = new Offcanvas();
+    private Offcanvas _otherCanvas = new Offcanvas();
+    
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await SelectCulture( "en-US" );
+
+        await base.OnInitializedAsync();
+    }
+
+    Task SelectCulture( string name )
+    {
+        LocalizationService!.ChangeLanguage( name );
+
+        return Task.CompletedTask;
+    }
+
+    private bool topbarVisible = false;
+
+    Task OnLayoutTypeChecked( string layoutType )
+    {
+        LayoutType = layoutType;
+
+        return LayoutTypeChanged.InvokeAsync( layoutType );
+    }
+
+    [Parameter] public EventCallback<bool> ThemeEnabledChanged { get; set; }
+
+    [Parameter] public EventCallback<bool> ThemeGradientChanged { get; set; }
+
+    [Parameter] public EventCallback<bool> ThemeRoundedChanged { get; set; }
+
+    [Parameter] public EventCallback<string> ThemeColorChanged { get; set; }
+
+    [Parameter] public string? LayoutType { get; set; }
+
+    [Parameter] public EventCallback<string> LayoutTypeChanged { get; set; }
+
+    [Inject] protected ITextLocalizerService? LocalizationService { get; set; }
+
+    [CascadingParameter] protected Theme? Theme { get; set; }
+}

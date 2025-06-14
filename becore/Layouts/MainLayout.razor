@@ -8,12 +8,12 @@
     <Layout Sider>
         <LayoutSider>
             <LayoutSiderContent>
-                <SideMenu />
+                <DesktopMenu />
             </LayoutSiderContent>
         </LayoutSider>
         <Layout>
             <LayoutHeader Fixed>
-                <TopMenu ThemeEnabledChanged="@OnThemeEnabledChanged"
+                <MobileMenu ThemeEnabledChanged="@OnThemeEnabledChanged"
                      ThemeGradientChanged="@OnThemeGradientChanged"
                      ThemeRoundedChanged="@OnThemeRoundedChanged"
                      ThemeColorChanged="@OnThemeColorChanged"
@@ -29,7 +29,7 @@ else if ( layoutType == "fixed-header-footer-only" )
 {
     <Layout>
         <LayoutHeader Fixed>
-            <TopMenu ThemeEnabledChanged="@OnThemeEnabledChanged"
+            <MobileMenu ThemeEnabledChanged="@OnThemeEnabledChanged"
                  ThemeGradientChanged="@OnThemeGradientChanged"
                  ThemeRoundedChanged="@OnThemeRoundedChanged"
                  ThemeColorChanged="@OnThemeColorChanged"
@@ -47,7 +47,7 @@ else if ( layoutType == "sider-with-header-on-top" )
 {
     <Layout>
         <LayoutHeader Fixed>
-            <TopMenu ThemeEnabledChanged="@OnThemeEnabledChanged"
+            <MobileMenu ThemeEnabledChanged="@OnThemeEnabledChanged"
                  ThemeGradientChanged="@OnThemeGradientChanged"
                  ThemeRoundedChanged="@OnThemeRoundedChanged"
                  ThemeColorChanged="@OnThemeColorChanged"
@@ -56,7 +56,7 @@ else if ( layoutType == "sider-with-header-on-top" )
         <Layout Sider>
             <LayoutSider>
                 <LayoutSiderContent>
-                    <SideMenu />
+                    <DesktopMenu />
                 </LayoutSiderContent>
             </LayoutSider>
             <Layout>
