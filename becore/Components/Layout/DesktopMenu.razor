@@ -5,8 +5,8 @@
     <BarBrand>
         <BarItem>
             <BarLink To="">
-                <BarIcon IconName="customIcon" />
-                becore
+                <BarIcon IconName="_logoIcon" />
+                &nbsp;becore
             </BarLink>
         </BarItem>
     </BarBrand>
@@ -43,8 +43,8 @@
         <BarEnd>
             <BarItem>
                 <BarLink To="/profile">
-                    <BarIcon IconName="IconName.User" />
-                    Профиль
+                    <BarIcon IconName="IconName.User"/>
+                    Profile
                 </BarLink>
             </BarItem>
             <BarItem>
@@ -64,5 +64,5 @@
 @code {
     private bool pagesBarVisible = true;
 
-    RenderFragment customIcon =@<img src="/brand-logo.png" style="width:32px; height: 32px" />;
+    private readonly RenderFragment _logoIcon = @<LottieAnimation Path="https://localhost:7297/lottie/logo.json"/>;
 }

@@ -3,10 +3,10 @@
 <Bar @bind-Visible="@topbarVisible" Background="Background.Dark"
      ThemeContrast="ThemeContrast.Dark" Class="is-fixed-bottom is-hidden-desktop" TextColor="TextColor.Light"
      Height="@Height.Em(3.8)">
-    <BarBrand @ref="_barBrandRef" Class="press-start-2p-regular">
+    <BarBrand Class="press-start-2p-regular">
             <BarItem Height="@Height.Em(4.2)">
                 <BarLink Height="Height.Max100" To="" Background="Background.Dark">
-                    <BarIcon Margin="Margin.Is2.FromEnd" IconName="IconName.Dashboard"/>
+                    <BarIcon Margin="Margin.Is2.FromEnd" IconName="_logoIcon"/>
                     becore
                 </BarLink>
             </BarItem>
@@ -108,12 +108,11 @@
 </Offcanvas>
 
 @code {
-    private Bar _barRef = new Bar();
-    private BarBrand _barBrandRef = new BarBrand();
     private Offcanvas _modCanvas = new Offcanvas();
     private Offcanvas _mapCanvas = new Offcanvas();
     private Offcanvas _otherCanvas = new Offcanvas();
-    
+    private readonly RenderFragment _logoIcon = @<LottieAnimation Path="https://localhost:7297/lottie/logo.json"/>;
+
     
     protected override async Task OnInitializedAsync()
     {
