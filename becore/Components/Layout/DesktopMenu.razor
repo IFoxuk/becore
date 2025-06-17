@@ -28,7 +28,7 @@
             <BarItem>
                 <BarDropdown>
                     <BarDropdownToggle>
-                        <BarIcon IconName="IconName.Edit" />
+                        <BarIcon IconName="_mapsIcon" />
                         Maps
                     </BarDropdownToggle>
                     <BarDropdownMenu Class="GNF-regular" Style="font-size: 1.2em">
@@ -65,4 +65,6 @@
     private bool pagesBarVisible = true;
 
     private readonly RenderFragment _logoIcon = @<LottieAnimation Path="https://localhost:7297/lottie/logo.json"/>;
+    private readonly RenderFragment _mapsIcon = @<LottieAnimation Height="Height.Px(24)" Width="Height.Px(24)" Path="/lottie/earth.json"/>;
+
 }
