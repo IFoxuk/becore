@@ -49,12 +49,13 @@
             </BarItem>
             <BarItem>
                 <BarLink To="/login">
-                    <BarIcon IconName="@("fa-solid fa-right-to-bracket")"/>
+                    <BarIcon IconName="_signInIcon"/>
                     Login
                 </BarLink>
             </BarItem>
             <BarItem>
                 <BarLink To="/logout">
+                    <BarIcon IconName="_signOutIcon"/>
                     Logout
                 </BarLink>
             </BarItem>
@@ -65,6 +66,9 @@
     private bool pagesBarVisible = true;
 
     private readonly RenderFragment _logoIcon = @<LottieAnimation Path="https://localhost:7297/lottie/logo.json"/>;
-    private readonly RenderFragment _mapsIcon = @<LottieAnimation Height="Height.Px(24)" Width="Height.Px(24)" Path="/lottie/earth.json"/>;
-
+    private readonly RenderFragment _mapsIcon = 
+        @<LottieAnimation Height="Height.Px(24)" Width="Height.Px(24)" Path="/lottie/earth.json"
+                          Loop="false"/>;
+    private readonly RenderFragment _signInIcon = @<Image Source="/icon/SignIn.svg"/>;
+    private readonly RenderFragment _signOutIcon = @<Image Source="/icon/SignOut.svg"/>;
 }
