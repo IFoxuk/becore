@@ -4,6 +4,7 @@ using becore.api.Scheme.Packs;
 
 namespace becore.api.Scheme;
 
+[Table("Page")]
 public class Page : DbEntity
 {
     [Required] [MaxLength(32)] public required string Name { get; set; }
