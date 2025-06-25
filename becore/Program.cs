@@ -33,9 +33,10 @@ app.Run();
 
 void AddBlazorise(IServiceCollection services)
 {
-    services
-        .AddBlazorise();
-    services
-        .AddBulmaProviders()
-        .AddFontAwesomeIcons();
+    services.AddBlazorise(options =>
+    {
+        options.Immediate = true;
+    })
+    .AddBulmaProviders()
+    .AddFontAwesomeIcons();
 }
