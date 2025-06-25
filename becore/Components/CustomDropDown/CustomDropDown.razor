@@ -1,0 +1,38 @@
+﻿<Dropdown Shadow="Shadow.Default" Margin="@Margin" Padding="@Padding">
+    <DropdownToggle Color="Color.Primary">
+        @SelectedItem
+    </DropdownToggle>
+
+    <DropdownMenu>
+        <Blazorise.Components.ListView Data="@Data" TItem="@string" TextField="(item) => item" ValueField="(item) => item"
+        ItemPadding="(item) => Blazorise.Padding.Is0">
+            <ItemTemplate>
+                <DropdownItem @onclick="() => ChangeSeletedItem(context.Item)" Border="Border.Rounded">
+                    @context.Item
+                </DropdownItem>
+            </ItemTemplate>
+        </Blazorise.Components.ListView>
+
+    </DropdownMenu>
+</Dropdown>
+
+@code
+{
+    [Parameter] public IFluentSpacing Margin { get; set; } = Blazorise.Margin.Is0;
+    [Parameter] public IFluentSpacing Padding { get; set; } = Blazorise.Padding.Is0;
+
+    [Parameter] public IEnumerable<string>? Data { get; set; }
+    [Parameter] public string? SelectedItem { get; set; }
+
+    private void ChangeSeletedItem(string str)
+    {
+        SelectedItem = str;
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        ChangeSeletedItem(SelectedItem != null ? SelectedItem : "Null");
+    }
+}

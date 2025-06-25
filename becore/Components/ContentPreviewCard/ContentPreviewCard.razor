@@ -1,0 +1,56 @@
+﻿<Card Padding="@Padding">
+    <Link To="/Content">
+        <CardHeader>
+            <Div>
+            <CardSubtitle Padding="Blazorise.Padding.Is2">
+                    by @Author
+                </CardSubtitle>
+            </Div>
+        </CardHeader>
+    </Link>
+
+    <Link To="/Content">
+        <CardImage Source="@ImageUrl" Alt="@Title" />
+    <CardTitle Padding="Blazorise.Padding.Is2">
+            @Title
+        </CardTitle>
+
+    </Link>
+
+    <CardBody Padding="Blazorise.Padding.Is2" Flex="Flex.Column" Gap="Gap.Is2">
+
+        <Div Flex="Flex.Default" Gap="Gap.Is2" Width="Width.Is100">
+            @if (Tags != null)
+            {
+
+                @foreach (var tag in Tags.Take(5))
+                {
+                    <Badge Color="Color.Primary"> @tag</Badge>
+                }
+                @if (Tags.Count() > 5)
+                {
+                    <Badge Color="Color.Primary">...</Badge>
+                }
+            }
+        </Div>
+
+        <CardText Class="multiline-truncate-4 text-break">@Description</CardText>
+
+    </CardBody>
+
+</Card>
+
+
+@code {
+    [Parameter] public IFluentSpacing Padding { get; set; } = Blazorise.Padding.Is0;
+
+    [Parameter] public string Title { get; set; }
+    [Parameter] public string Author { get; set; }
+    [Parameter] public string ImageUrl { get; set; }
+    [Parameter] public string Description { get; set; }
+    [Parameter] public IEnumerable<string>? Tags { get; set; }
+}
+
+@code {
+
+}
