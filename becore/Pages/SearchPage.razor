@@ -28,7 +28,7 @@
                             </Div>
                             <Div Margin="Margin.Is1">
                                 <Text TextSize="TextSize.Medium">Тег</Text>
-                                <becore.Components.CustomDropDown.CustomDropDown Data="@_list" SelectedItem="none"></becore.Components.CustomDropDown.CustomDropDown>
+                                <becore.Components.CustomDropDown.ScrollableDropdown Items="@_list" SelectedItem="@_list.First()"></becore.Components.CustomDropDown.ScrollableDropdown>
                             </Div>
                             <Div Margin="Margin.Is2" Flex="Flex.AlignContent.Center.JustifyContent.Center">
                                 <Button Color="Color.Success" Shadow="Shadow.Default">Поиск</Button>

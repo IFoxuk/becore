@@ -1,0 +1,72 @@
+@using Blazorise
+
+<Dropdown @ref="dropdownRef">
+    <DropdownToggle Color="Color.Primary" Outline="true">
+        @selectedText
+    </DropdownToggle>
+    <DropdownMenu Style="max-height: 200px; overflow-y: auto;">
+        @if (Items != null)
+        {
+            @foreach (var item in Items)
+            {
+                <DropdownItem @onclick="() => OnItemSelected(item)">
+                    @GetItemText(item)
+                </DropdownItem>
+            }
+        }
+    </DropdownMenu>
+</Dropdown>
+
+@code {
+    private Dropdown? dropdownRef;
+    private string selectedText = "Выберите элемент";
+
+    [Parameter] public IEnumerable<TItem>? Items { get; set; }
+    [Parameter] public TItem? SelectedItem { get; set; }
+    [Parameter] public EventCallback<TItem> SelectedItemChanged { get; set; }
+    [Parameter] public Func<TItem, string>? ItemTextSelector { get; set; }
+    [Parameter] public string PlaceholderText { get; set; } = "Выберите элемент";
+
+    [Parameter] public RenderFragment<TItem>? ItemTemplate { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        UpdateSelectedText();
+    }
+
+    private async Task OnItemSelected(TItem item)
+    {
+        SelectedItem = item;
+        await SelectedItemChanged.InvokeAsync(item);
+        UpdateSelectedText();
+        
+        // Закрываем dropdown после выбора
+        if (dropdownRef != null)
+        {
+            await dropdownRef.Hide();
+        }
+    }
+
+    private void UpdateSelectedText()
+    {
+        if (SelectedItem != null)
+        {
+            selectedText = GetItemText(SelectedItem);
+        }
+        else
+        {
+            selectedText = PlaceholderText;
+        }
+    }
+
+    private string GetItemText(TItem item)
+    {
+        if (ItemTextSelector != null)
+        {
+            return ItemTextSelector(item);
+        }
+        return item?.ToString() ?? "";
+    }
+}
+
+@typeparam TItem
