@@ -18,7 +18,7 @@ namespace becore.api.Controllers.ContentController
             _contentService = contentService;
         }
 
-        [HttpGet]
+        [HttpGet("pages")]
         public async Task<ActionResult<IEnumerable<PageDto>>> GetPages([FromQuery] PageFilter filter)
         {
             var pages = await _contentService.GetPagesAsync(filter);
@@ -34,7 +34,7 @@ namespace becore.api.Controllers.ContentController
             return Ok(pageDtos);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("pages/{id}")]
         public async Task<ActionResult<PageDto>> GetPage(Guid id)
         {
             var page = await _contentService.GetPageByIdAsync(id);
@@ -45,7 +45,7 @@ namespace becore.api.Controllers.ContentController
             return Ok(pageDto);
         }
 
-        [HttpPost]
+        [HttpPost("pages")]
         public async Task<ActionResult<PageDto>> CreatePage(CreatePageDto createPageDto)
         {
             Page page = createPageDto; // Implicit conversion
@@ -54,7 +54,7 @@ namespace becore.api.Controllers.ContentController
             return CreatedAtAction(nameof(GetPage), new { id = createdPage.Id }, createdPageDto);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("pages/{id}")]
         public async Task<IActionResult> UpdatePage(Guid id, UpdatePageDto updatePageDto)
         {
             var existingPage = await _contentService.GetPageByIdAsync(id);
@@ -66,7 +66,7 @@ namespace becore.api.Controllers.ContentController
             return NoContent();
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("pages/{id}")]
         public async Task<IActionResult> DeletePage(Guid id)
         {
             var success = await _contentService.DeletePageAsync(id);

@@ -45,12 +45,17 @@ public class ContentService
 
     public async Task<Page> CreatePageAsync(Page page)
     {
-        page.Id = Guid.NewGuid();
-        
-        // Устанавливаем PageId для всех тегов
-        foreach (var pageTag in page.PageTags)
+        // Id уже установлен в implicit operator CreatePageDto
+        // Но если он пустой, устанавливаем новый
+        if (page.Id == Guid.Empty)
         {
-            pageTag.PageId = page.Id;
+            page.Id = Guid.NewGuid();
+            
+            // Обновляем PageId для всех тегов
+            foreach (var pageTag in page.PageTags)
+            {
+                pageTag.PageId = page.Id;
+            }
         }
         
         _context.Pages.Add(page);
