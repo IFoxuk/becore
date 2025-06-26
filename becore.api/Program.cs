@@ -90,46 +90,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
         };
-        
-        // Добавляем логирование событий JWT
-        options.Events = new JwtBearerEvents
-        {
-            OnAuthenticationFailed = context =>
-            {
-                Console.WriteLine($"🔴 JWT Authentication failed: {context.Exception.Message}");
-                Console.WriteLine($"🔴 Exception details: {context.Exception}");
-                return Task.CompletedTask;
-            },
-            OnTokenValidated = context =>
-            {
-                Console.WriteLine($"✅ JWT Token validated successfully for user: {context.Principal?.Identity?.Name}");
-                Console.WriteLine($"✅ Claims count: {context.Principal?.Claims?.Count()}");
-                return Task.CompletedTask;
-            },
-            OnMessageReceived = context =>
-            {
-                var authHeader = context.Request.Headers.Authorization.FirstOrDefault();
-                Console.WriteLine($"📨 JWT OnMessageReceived triggered");
-                Console.WriteLine($"📨 Auth header: {authHeader}");
-                
-                if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
-                {
-                    var token = authHeader.Substring("Bearer ".Length);
-                    Console.WriteLine($"📨 Token extracted, length: {token.Length}");
-                    context.Token = token;
-                }
-                else
-                {
-                    Console.WriteLine($"📨 No valid Bearer token found");
-                }
-                return Task.CompletedTask;
-            },
-            OnChallenge = context =>
-            {
-                Console.WriteLine($"🚫 JWT Challenge triggered: {context.Error} - {context.ErrorDescription}");
-                return Task.CompletedTask;
-            }
-        };
     });
 
 builder.Services.AddAuthorization();

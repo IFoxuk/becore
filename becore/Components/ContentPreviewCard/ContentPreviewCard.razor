@@ -1,56 +1,47 @@
-﻿<Card Padding="@Padding">
-    <Link To="/Content">
-        <CardHeader>
-            <Div>
-            <CardSubtitle Padding="Blazorise.Padding.Is2">
-                    by @Author
-                </CardSubtitle>
-            </Div>
-        </CardHeader>
-    </Link>
-
-    <Link To="/Content">
-        <CardImage Source="@ImageUrl" Alt="@Title" />
-    <CardTitle Padding="Blazorise.Padding.Is2">
-            @Title
-        </CardTitle>
-
-    </Link>
-
-    <CardBody Padding="Blazorise.Padding.Is2" Flex="Flex.Column" Gap="Gap.Is2">
-
-        <Div Flex="Flex.Default" Gap="Gap.Is2" Width="Width.Is100">
-            @if (Tags != null)
-            {
-
-                @foreach (var tag in Tags.Take(5))
+<div class="content-preview-card">
+    <div class="card-container">
+        <Link To="/Content" class="card-link">
+            <div class="card-image-container">
+                <img src="@ImageUrl" alt="@Title" class="card-image" />
+                <div class="card-overlay">
+                    <div class="card-overlay-content">
+                        <Icon Name="IconName.Eye" class="overlay-icon" />
+                    </div>
+                </div>
+            </div>
+        </Link>
+        
+        <div class="card-content">
+            <div class="card-header">
+                <h3 class="card-title" title="@Title">@Title</h3>
+                <p class="card-author">by @Author</p>
+            </div>
+            
+            <div class="card-tags">
+                @if (Tags != null && Tags.Any())
                 {
-                    <Badge Color="Color.Primary"> @tag</Badge>
+                    @foreach (var tag in Tags.Take(3))
+                    {
+                        <span class="tag">@tag</span>
+                    }
+                    @if (Tags.Count() > 3)
+                    {
+                        <span class="tag tag-more">+@(Tags.Count() - 3)</span>
+                    }
                 }
-                @if (Tags.Count() > 5)
-                {
-                    <Badge Color="Color.Primary">...</Badge>
-                }
-            }
-        </Div>
-
-        <CardText Class="multiline-truncate-4 text-break">@Description</CardText>
-
-    </CardBody>
-
-</Card>
-
+            </div>
+            
+            <div class="card-description">
+                <p class="description-text">@Description</p>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
-    [Parameter] public IFluentSpacing Padding { get; set; } = Blazorise.Padding.Is0;
-
     [Parameter] public string Title { get; set; } = string.Empty;
     [Parameter] public string Author { get; set; } = string.Empty;
     [Parameter] public string ImageUrl { get; set; } = string.Empty;
     [Parameter] public string Description { get; set; } = string.Empty;
     [Parameter] public IEnumerable<string>? Tags { get; set; }
-}
-
-@code {
-
 }
