@@ -7,14 +7,20 @@ using Microsoft.Extensions.Options;
 
 namespace becore.api.Services;
 
-public class FileService(FileModel fileModel, IOptions<S3Options> options, IAmazonS3 s3Client, ApplicationContext context)
+public class FileService(IOptions<S3Options> options, IAmazonS3 s3Client, ApplicationContext context)
 {
-    private readonly FileModel _file = fileModel;
+    private FileModel _file = null!;
     private readonly S3Options _options = options.Value;
     private IAmazonS3 _s3Client = s3Client;
-    private ApplicationContext _context = context; 
+    private ApplicationContext _context = context;
 
-    public async Task<FileModel?> CreateAsync()
+    public Task<FileModel?> CreateAsync(FileModel fileModel)
+    {
+        _file = fileModel;
+        return CreateAsync();
+    }
+    
+    private async Task<FileModel?> CreateAsync()
     {
         await _context.Files.AddAsync(_file.Entity);
         var saveResult = _context.SaveChangesAsync();
@@ -28,7 +34,7 @@ public class FileService(FileModel fileModel, IOptions<S3Options> options, IAmaz
             ContentType = _file.Entity.Type,
             InputStream = _file.Data
         };
-        var response = await _s3Client.PutObjectAsync(request);
+        var response = await _s3Client.PutObjectAsync(request); //TODO: Нэ бачит
         if (response.HttpStatusCode == System.Net.HttpStatusCode.OK) return _file;
         
         _context.Remove(_file.Entity);
@@ -36,9 +42,9 @@ public class FileService(FileModel fileModel, IOptions<S3Options> options, IAmaz
         return null;
     }
 
-    public async Task<FileModel?> GetAsync()
+    public async Task<FileModel?> GetAsync(Guid id)
     {
-        var file = await _context.Files.FindAsync(_file.Entity.Id);
+        var file = await _context.Files.FindAsync(id);
         if (file == null) return null;
 
         var request = new GetObjectRequest
@@ -46,7 +52,7 @@ public class FileService(FileModel fileModel, IOptions<S3Options> options, IAmaz
             BucketName = _options.BucketName,
             Key = $"{file as DbEntity}"
         };
-        var response = await _s3Client.GetObjectAsync(request);
+        var response = await _s3Client.GetObjectAsync(request); //TODO: Нэ бачит
         if (response.HttpStatusCode == System.Net.HttpStatusCode.OK)
         {
             _file.Entity = file;
@@ -59,12 +65,12 @@ public class FileService(FileModel fileModel, IOptions<S3Options> options, IAmaz
         return null;
     }
 
-    public async Task DeleteAsync()
+    public async Task DeleteAsync(Guid id)
     {
-        var file = await _context.Files.FindAsync(_file.Entity.Id);
+        var file = await _context.Files.FindAsync(id);
         if (file == null) return;
 
-        await _s3Client.DeleteObjectAsync(new DeleteObjectRequest
+        await _s3Client.DeleteObjectAsync(new DeleteObjectRequest //TODO: Нэ бачит
         {
             BucketName = _options.BucketName,
             Key = $"{file as DbEntity}"
@@ -74,9 +80,15 @@ public class FileService(FileModel fileModel, IOptions<S3Options> options, IAmaz
         await _context.SaveChangesAsync();
     }
 
-    public async Task<FileModel?> UpdateAsync()
+    public Task<FileModel?> UpdateAsync(FileModel fileModel)
     {
-        await DeleteAsync();
+        _file = fileModel;
+        return UpdateAsync();
+    }
+    
+    private async Task<FileModel?> UpdateAsync()
+    {
+        await DeleteAsync(_file.Entity.Id);
         return await CreateAsync();
     }
 }

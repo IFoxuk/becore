@@ -1,10 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using becore.api.Models;
 
 namespace becore.api.Scheme.System;
 
 [Table("File")]
 public class File : DbEntity
 {
-    public string? Type { get; set; }
-    public User? User { get; set; }
+    [Required] [MaxLength(32)] public required string Type { get; set; }
+    public ApplicationUser? User { get; set; }
 }

@@ -356,6 +356,10 @@ namespace becore.api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Content")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
+
                     b.Property<string>("Description")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
@@ -395,6 +399,27 @@ namespace becore.api.Migrations
                     b.HasIndex("PageId");
 
                     b.ToTable("PageTag");
+                });
+
+            modelBuilder.Entity("becore.api.Scheme.System.File", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("File");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -501,6 +526,15 @@ namespace becore.api.Migrations
                         .IsRequired();
 
                     b.Navigation("Page");
+                });
+
+            modelBuilder.Entity("becore.api.Scheme.System.File", b =>
+                {
+                    b.HasOne("becore.api.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("becore.api.Scheme.Page", b =>

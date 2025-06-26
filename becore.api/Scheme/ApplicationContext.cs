@@ -26,6 +26,11 @@ public class ApplicationContext : IdentityDbContext<ApplicationUser, IdentityRol
             .HasMany(p => p.PageTags)
             .WithOne(pt => pt.Page)
             .HasForeignKey(pt => pt.PageId);
+
+        modelBuilder.Entity<File>(file =>
+        {
+            file.Navigation(x => x.User).AutoInclude();
+        });
     }
 
     public ApplicationContext(DbContextOptions<ApplicationContext> options) : base(options) { }
