@@ -48,12 +48,12 @@ public class S3Controller(IOptions<S3Options> options, IAmazonS3 s3Client) : Con
     }
 
     [HttpDelete("image/{id}")]
-    public async Task<IActionResult> DeleteImage([FromRoute] int id)
+    public async Task<IActionResult> DeleteImage([FromRoute] Guid id)
     {
         var objectRequest = new DeleteObjectRequest
         {
             BucketName = _options.BucketName,
-            Key = $"{id}"
+            Key = id.ToString()
         };
         var response = await _s3Client.DeleteObjectAsync(objectRequest);
         return response.HttpStatusCode == HttpStatusCode.NoContent ? NoContent() : BadRequest();
