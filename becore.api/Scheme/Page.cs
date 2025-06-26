@@ -13,4 +13,22 @@ public class Page : DbEntity
     public string? QuadIcon { get; set; }
     public string? WideIcon { get; set; }
     [NotMapped] public List<Pack> Packs { get; set; } = [];
+    
+    // Навигационные свойства для тегов
+    public virtual ICollection<PageTag> PageTags { get; set; } = new List<PageTag>();
+    
+    // Удобное свойство для работы с тегами как со строками
+    [NotMapped]
+    public List<string> Tags 
+    {
+        get => PageTags.Select(pt => pt.TagName).ToList();
+        set
+        {
+            PageTags.Clear();
+            foreach (var tag in value)
+            {
+                PageTags.Add(new PageTag { TagName = tag, PageId = Id });
+            }
+        }
+    }
 }

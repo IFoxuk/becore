@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  becore-api:
+    build:
+      context: ./becore.api
+      dockerfile: Dockerfile
+    ports:
+      - "7047:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    networks:
+      - becore-network
+
+  becore-client:
+    build:
+      context: ./becore
+      dockerfile: Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ApiSettings__BaseUrl=http://becore-api:8080/
+    depends_on:
+      - becore-api
+    networks:
+      - becore-network
+
+networks:
+  becore-network:
+    driver: bridge

@@ -1,0 +1,59 @@
+﻿@page "/search"
+
+<Container Fluid>
+    <Row Gap="Gap.Is4">
+        <Column ColumnSize="ColumnSize.Is10.Is1.WithOffset" Border="Border.Rounded" Shadow="Shadow.Default" Background="Background.Primary" Padding="Padding.Is4">
+            <Text TextSize="TextSize.Heading1" TextColor="TextColor.Secondary">Поиск модификаций</Text>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is10.Is1.WithOffset" Border="Border.Rounded" Shadow="Shadow.Default" Background="Background.Primary" Padding="Padding.Is4">
+            <Row>
+                <Column ColumnSize="ColumnSize.Is8">
+                    <Div Padding="Padding.Is4">
+                        <CardDeck Gap="Gap.Is3">
+                            <becore.Components.ContentPreviewCard.ContentPreviewCard Title="Header" Author="Author" Tags="_list" Description="descdescdescdescdescdescdescdescdescdes cdescdescdescdescdescdescdescdescdescdescdescdescdescdescdesc descdescdescdescdescdescdescdescdescdescdescdescdescdescdescdescdescdescdescdescdesc descdescdescdescdescdescdescdescdescdescdescdesc" ImageUrl="img\jpg\world.jpg"></becore.Components.ContentPreviewCard.ContentPreviewCard>
+                            <becore.Components.ContentPreviewCard.ContentPreviewCard Title="Header" Author="Author" Tags="_list" Description="desc" ImageUrl="img\jpg\world.jpg"></becore.Components.ContentPreviewCard.ContentPreviewCard>
+                            <becore.Components.ContentPreviewCard.ContentPreviewCard Title="Header" Author="Author" Tags="_list" Description="desc" ImageUrl="img\jpg\world.jpg"></becore.Components.ContentPreviewCard.ContentPreviewCard>
+                            <becore.Components.ContentPreviewCard.ContentPreviewCard Title="Header" Author="Author" Tags="_list" Description="desc" ImageUrl="img\jpg\world.jpg"></becore.Components.ContentPreviewCard.ContentPreviewCard>
+                        </CardDeck>
+                    </Div>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is4">
+                    <Div Padding="Padding.Is4" Background="Background.Secondary" Border="Border.Rounded" Shadow="Shadow.Default">
+                        <Div Flex="Flex.Column">
+                            <Div Margin="Margin.Is1" Flex="Flex.Row.AlignItems.Center">
+                                <Text TextSize="TextSize.Medium">Название</Text>
+                                <Div Padding="Padding.Is2">
+                                    <TextEdit></TextEdit>
+                                </Div>
+                            </Div>
+                            <Div Margin="Margin.Is1">
+                                <Text TextSize="TextSize.Medium">Тег</Text>
+                                <becore.Components.CustomDropDown.ScrollableDropdown Items="@_list" SelectedItem="@_list.First()"></becore.Components.CustomDropDown.ScrollableDropdown>
+                            </Div>
+                            <Div Margin="Margin.Is2" Flex="Flex.AlignContent.Center.JustifyContent.Center">
+                                <Button Color="Color.Success" Shadow="Shadow.Default">Поиск</Button>
+                            </Div>
+                        </Div>
+                    </Div>
+                </Column>
+            </Row>
+        </Column>
+    </Row>
+</Container>
+
+@code
+{
+    private List<string> _list { get; set; } = ["none", "средневековье", "SI-FI", "утилиты", "космос", "графика", "шейдеры", "NPC", "оружие", "техника"];
+
+    private string SelectText = "none";
+
+    private void ChangeSeletText(string str)
+    {
+        SelectText = str;
+    }
+}
+
+@code
+{
+
+}
