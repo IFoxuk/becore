@@ -44,10 +44,10 @@
 @code {
     [Parameter] public IFluentSpacing Padding { get; set; } = Blazorise.Padding.Is0;
 
-    [Parameter] public string Title { get; set; }
-    [Parameter] public string Author { get; set; }
-    [Parameter] public string ImageUrl { get; set; }
-    [Parameter] public string Description { get; set; }
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Author { get; set; } = string.Empty;
+    [Parameter] public string ImageUrl { get; set; } = string.Empty;
+    [Parameter] public string Description { get; set; } = string.Empty;
     [Parameter] public IEnumerable<string>? Tags { get; set; }
 }
 

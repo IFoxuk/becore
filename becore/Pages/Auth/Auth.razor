@@ -1,0 +1,61 @@
+@page "/auth"
+@using becore.Components.Auth
+@using becore.Services
+@inject NavigationManager Navigation
+@inject AuthService AuthService
+
+<PageTitle>Авторизация</PageTitle>
+
+<div class="hero is-fullheight">
+    <div class="hero-body">
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column is-4">
+                    @if (showLogin)
+                    {
+                        <LoginComponent 
+                            OnLoginSuccess="HandleLoginSuccess" 
+                            OnSwitchToRegister="SwitchToRegister" />
+                    }
+                    else
+                    {
+                        <RegisterComponent 
+                            OnRegisterSuccess="HandleRegisterSuccess" 
+                            OnSwitchToLogin="SwitchToLogin" />
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, SupplyParameterFromQuery] public string? ReturnUrl { get; set; }
+    
+    private bool showLogin = true;
+
+    private async Task HandleLoginSuccess()
+    {
+        // Перенаправляем на страницу возврата или на главную
+        var url = !string.IsNullOrEmpty(ReturnUrl) ? ReturnUrl : "/";
+        Navigation.NavigateTo(url, replace: true);
+    }
+
+    private async Task HandleRegisterSuccess()
+    {
+        // После успешной регистрации перенаправляем на главную
+        Navigation.NavigateTo("/", replace: true);
+    }
+
+    private void SwitchToRegister()
+    {
+        showLogin = false;
+        StateHasChanged();
+    }
+
+    private void SwitchToLogin()
+    {
+        showLogin = true;
+        StateHasChanged();
+    }
+}

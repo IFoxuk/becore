@@ -8,7 +8,7 @@ public class UsernameValidatorAttribute : ValidationAttribute
         ErrorMessage = "Некорректный логин";
     }
 
-    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
     {
         var username = value as string ?? "";
 

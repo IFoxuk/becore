@@ -1,12 +1,18 @@
 ﻿<Blazorise.ThemeProvider Theme="@theme">
-    <Router AppAssembly="typeof(App).Assembly">
-        <Found Context="routeData">
-            <RouteView RouteData="routeData" DefaultLayout="typeof(becore.Layouts.MainLayout)" />
-        </Found>
-        <NotFound>
-            <p>Sorry, there's nothing at this address.</p>
-        </NotFound>
-    </Router>
+    <CascadingAuthenticationState>
+        <Router AppAssembly="typeof(App).Assembly">
+            <Found Context="routeData">
+                <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(becore.Layouts.MainLayout)">
+                    <NotAuthorized>
+                        <RedirectToLogin />
+                    </NotAuthorized>
+                </AuthorizeRouteView>
+            </Found>
+            <NotFound>
+                <p>Sorry, there's nothing at this address.</p>
+            </NotFound>
+        </Router>
+    </CascadingAuthenticationState>
     <MessageProvider />
     <PageProgressProvider />
 </Blazorise.ThemeProvider>

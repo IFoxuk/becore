@@ -1,0 +1,247 @@
+@page "/profile"
+@using becore.Services
+@using becore.Models
+@using Blazorise
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.Extensions.Logging
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@inject ILogger<Profile> Logger
+@attribute [Authorize]
+
+<PageTitle>Профиль - becore</PageTitle>
+
+<Container>
+    <Row>
+        <Column ColumnSize="ColumnSize.Is8.OnDesktop.Is10.OnTablet.Is12.OnMobile" Offset="ColumnSize.Is2.OnDesktop.Is1.OnTablet">
+            @if (isLoading)
+            {
+                <Card>
+                    <CardBody Class="text-center">
+                        <Icon Name="IconName.Circle" Animation="Animation.Spin" Size="IconSize.Large" />
+                        <br /><br />
+                        <Text>Загрузка профиля...</Text>
+                    </CardBody>
+                </Card>
+            }
+            else if (currentUser != null)
+            {
+                <Card>
+                    <CardHeader>
+                        <CardTitle Size="5">
+                            <Icon Name="IconName.User" />
+                            Профиль пользователя
+                        </CardTitle>
+                    </CardHeader>
+                    <CardBody>
+                        <Row>
+                            <Column ColumnSize="ColumnSize.Is12.Is6.OnDesktop">
+                                <Field>
+                                    <FieldLabel>Имя пользователя</FieldLabel>
+                                    <TextEdit @bind-Text="currentUser.Username" ReadOnly="true" />
+                                </Field>
+                                
+                                <Field>
+                                    <FieldLabel>Email</FieldLabel>
+                                    <TextEdit @bind-Text="currentUser.Email" ReadOnly="true" />
+                                </Field>
+                                
+                                <Field>
+                                    <FieldLabel>Дата регистрации</FieldLabel>
+                                    <TextEdit Text="@currentUser.CreatedAt.ToString("dd.MM.yyyy HH:mm")" ReadOnly="true" />
+                                </Field>
+                                
+                                @if (currentUser.LastLoginAt.HasValue)
+                                {
+                                    <Field>
+                                        <FieldLabel>Последний вход</FieldLabel>
+                                        <TextEdit Text="@currentUser.LastLoginAt.Value.ToString("dd.MM.yyyy HH:mm")" ReadOnly="true" />
+                                    </Field>
+                                }
+                                
+                                <Field>
+                                    <FieldLabel>Статус</FieldLabel>
+                                    <Div>
+                                        @if (currentUser.IsActive)
+                                        {
+                                            <Badge Color="Color.Success">
+                                                <Icon Name="IconName.Check" />
+                                                Активный
+                                            </Badge>
+                                        }
+                                        else
+                                        {
+                                            <Badge Color="Color.Danger">
+                                                <Icon Name="IconName.Times" />
+                                                Неактивный
+                                            </Badge>
+                                        }
+                                    </Div>
+                                </Field>
+                            </Column>
+                            
+                            <Column ColumnSize="ColumnSize.Is12.Is6.OnDesktop">
+                                <Card Background="Background.Light">
+                                    <CardHeader>
+                                        <CardTitle Size="6">Статистика</CardTitle>
+                                    </CardHeader>
+                                    <CardBody>
+                                        <Div Class="d-flex justify-content-center mb-3">
+                                            <Icon Name="IconName.User" 
+                                                  Style="font-size: 4rem; color: #007bff; background: #e3f2fd; padding: 1rem; border-radius: 50%; width: 6rem; height: 6rem; display: flex; align-items: center; justify-content: center;" />
+                                        </Div>
+                                        
+                                        <Div Class="text-center">
+                                            <Heading Size="HeadingSize.Is4">@currentUser.Username</Heading>
+                                            <Text TextColor="TextColor.Muted">@currentUser.Email</Text>
+                                        </Div>
+                                        
+                                        <Divider />
+                                        
+                                        <Small TextColor="TextColor.Muted">
+                                            <Icon Name="IconName.Calendar" />
+                                            С нами с @currentUser.CreatedAt.ToString("MMMM yyyy", new System.Globalization.CultureInfo("ru-RU"))
+                                        </Small>
+                                    </CardBody>
+                                </Card>
+                            </Column>
+                        </Row>
+                    </CardBody>
+                    <CardFooter>
+                        <Div Class="d-flex gap-2">
+                            <Button Color="Color.Primary" Clicked="@(() => Navigation.NavigateTo("/"))">
+                                <Icon Name="IconName.Home" />
+                                На главную
+                            </Button>
+                            
+                            <Button Color="Color.Secondary" Clicked="HandleLogout">
+                                <Icon Name="IconName.Times" />
+                                Выйти из аккаунта
+                            </Button>
+                        </Div>
+                    </CardFooter>
+                </Card>
+            }
+            else if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <Card>
+                    <CardBody Class="text-center">
+                        <Icon Name="IconName.ExclamationTriangle" Size="IconSize.Large" TextColor="TextColor.Danger" />
+                        <br /><br />
+                        <Heading Size="HeadingSize.Is4">Ошибка загрузки</Heading>
+                        <Text>@errorMessage</Text>
+                        <br />
+                        <div Class="d-flex justify-content-center gap-2">
+                            @if (showReloginOption)
+                            {
+                                <Button Color="Color.Primary" Clicked="HandleLogout">
+                                    <Icon Name="IconName.User" />
+                                    Войти заново
+                                </Button>
+                            }
+                            else
+                            {
+                                <Button Color="Color.Primary" Clicked="RetryLoadProfile">
+                                    <Icon Name="IconName.Undo" />
+                                    Повторить попытку
+                                </Button>
+                            }
+                            <Button Color="Color.Secondary" To="/">
+                                <Icon Name="IconName.Home" />
+                                На главную
+                            </Button>
+                        </div>
+                    </CardBody>
+                </Card>
+            }
+            else
+            {
+                <Card>
+                    <CardBody Class="text-center">
+                        <Icon Name="IconName.Exclamation" Size="IconSize.Large" TextColor="TextColor.Warning" />
+                        <br /><br />
+                        <Heading Size="HeadingSize.Is4">Необходима авторизация</Heading>
+                        <Text>Для просмотра профиля необходимо войти в систему.</Text>
+                        <br />
+                        <Button Color="Color.Primary" To="/auth">
+                            <Icon Name="IconName.User" />
+                            Войти в систему
+                        </Button>
+                    </CardBody>
+                </Card>
+            }
+        </Column>
+    </Row>
+</Container>
+
+@code {
+    private bool isLoading = true;
+    private UserResponse? currentUser = null;
+    private string? errorMessage = null;
+    private bool showReloginOption = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserProfile();
+    }
+
+    private async Task LoadUserProfile()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+            
+            // Ждем инициализации AuthService
+            await AuthService.WaitForInitializationAsync();
+            
+            // Проверяем аутентификацию напрямую через AuthService
+            if (!AuthService.IsAuthenticated)
+            {
+                // Позволяем атрибуту [Authorize] обработать это
+                Logger?.LogInformation("User is not authenticated, letting [Authorize] handle this");
+                return;
+            }
+
+            // Пытаемся получить информацию о пользователе
+            var userResult = await AuthService.GetCurrentUserAsync();
+            if (userResult != null)
+            {
+                currentUser = userResult;
+                Logger?.LogInformation("User profile loaded successfully for {Username}", userResult.Username);
+            }
+            else
+            {
+                // Пользователь аутентифицирован, но не найден в базе данных
+                // Это может означать, что данные пользователя были удалены
+                errorMessage = "Информация о пользователе не найдена в системе. Возможно, аккаунт был удален.";
+                Logger?.LogWarning("User is authenticated but not found in database. User might have been deleted.");
+                
+                // Предлагаем пользователю войти заново
+                showReloginOption = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Ошибка при загрузке профиля: {ex.Message}";
+            Logger?.LogError(ex, "Error loading user profile");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleLogout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/");
+    }
+
+    private async Task RetryLoadProfile()
+    {
+        showReloginOption = false;
+        await LoadUserProfile();
+    }
+}

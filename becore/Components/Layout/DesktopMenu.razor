@@ -41,34 +41,67 @@
             </BarItem>
         </BarStart>
         <BarEnd>
-            <BarItem>
-                <BarLink To="/profile">
-                    <BarIcon IconName="IconName.User"/>
-                    Profile
-                </BarLink>
-            </BarItem>
-            <BarItem>
-                <BarLink To="/login">
-                    <BarIcon IconName="_signInIcon"/>
-                    Login
-                </BarLink>
-            </BarItem>
-            <BarItem>
-                <BarLink To="/logout">
-                    <BarIcon IconName="_signOutIcon"/>
-                    Logout
-                </BarLink>
-            </BarItem>
+            <AuthorizeView>
+                <Authorized>
+                    <BarItem>
+                        <BarDropdown>
+                            <BarDropdownToggle>
+                                <BarIcon IconName="IconName.User"/>
+                                Account
+                            </BarDropdownToggle>
+                            <BarDropdownMenu Class="GNF-regular" Style="font-size: 1.2em">
+                                <BarDropdownItem To="/profile">
+                                    <Icon Name="IconName.User" Class="me-2"/>
+                                    Profile
+                                </BarDropdownItem>
+                                <BarDropdownItem To="/debug-panel">
+                                    <Icon Name="IconName.Settings" Class="me-2"/>
+                                    Debug Panel
+                                </BarDropdownItem>
+                                <BarDropdownDivider />
+                                <BarDropdownItem @onclick="HandleLogout">
+                                    <Icon Name="IconName.Times" Class="me-2"/>
+                                    Logout
+                                </BarDropdownItem>
+                            </BarDropdownMenu>
+                        </BarDropdown>
+                    </BarItem>
+                </Authorized>
+
+                <NotAuthorized>
+                    <BarItem>
+                        <BarLink To="/login">
+                            <BarIcon IconName="_signInIcon"/>
+                            Login
+                        </BarLink>
+                    </BarItem>
+                    <BarItem>
+                        <BarLink To="/register">
+                            <BarIcon IconName="IconName.UserPlus"/>
+                            Register
+                        </BarLink>
+                    </BarItem>
+                </NotAuthorized>
+            </AuthorizeView>
         </BarEnd>
     </BarMenu>
 </Bar>
-@code {
-    private bool pagesBarVisible = true;
+@using becore.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthService AuthService
+@inject NavigationManager Navigation
 
+@code {
     private readonly RenderFragment _logoIcon = @<LottieAnimation Path="https://localhost:7297/lottie/logo.json"/>;
     private readonly RenderFragment _mapsIcon = 
         @<LottieAnimation Height="Height.Px(24)" Width="Height.Px(24)" Path="/lottie/earth.json"
                           Loop="false"/>;
     private readonly RenderFragment _signInIcon = @<Image Source="/icon/SignIn.svg"/>;
     private readonly RenderFragment _signOutIcon = @<Image Source="/icon/SignOut.svg"/>;
+
+    private async Task HandleLogout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/");
+    }
 }
