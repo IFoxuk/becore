@@ -1,8 +1,9 @@
 @page "/search"
 @using becore.Services
 @using becore.Components.ContentPreviewCard
+@using becore.shared.DTOs
 @inject ContentApiService ContentService
-@implements IDisposable
+@inject IJSRuntime JSRuntime
 
 <style>
     .content-grid {
@@ -15,7 +16,8 @@
     
     .content-item {
         width: 100%;
-        height: 300px;
+        height: auto;
+        min-height: 420px;
         display: flex;
         flex-direction: column;
     }
@@ -34,7 +36,14 @@
         }
         
         .content-item {
-            height: 280px;
+            min-height: 380px;
+            height: auto;
+        }
+    }
+    
+    @@media (max-width: 400px) {
+        .content-item {
+            min-height: 350px;
         }
     }
     
@@ -92,46 +101,38 @@
                                 </Text>
                             </Div>
                             
-                            <div class="content-grid">
+                            <Div class="content-grid">
                                 @foreach (var pageItem in _currentPageItems)
                                 {
                                     <div class="content-item">
                                         <ContentPreviewCard 
-                                            Title="@pageItem.Name" 
-                                            Author="@GetFormattedDate(pageItem.Created)" 
-                                            Tags="@pageItem.Tags" 
-                                            Description="@GetDescription(pageItem.Description)" 
-                                            ImageUrl="@GetImageUrl(pageItem.QuadIcon)" />
+                                            PageData="@pageItem" 
+                                            ShowDebugInfo="false" />
                                     </div>
                                 }
                                 
-                                @* Заполняем пустые ячейки если нужно *@
-                                @for (int i = _currentPageItems.Count(); i < PageSize; i++)
-                                {
-                                    <div class="content-item"></div>
-                                }
-                            </div>
+                            </Div>
                             
                             @if (_totalPages > 1)
                             {
-                                <div class="pagination">
+                                <Div class="pagination">
                                     @if (_currentPage > 1)
                                     {
-                                        <button @onclick="() => ChangePage(_currentPage - 1)">Предыдущая</button>
+                                        <Button @onclick="() => ChangePage(_currentPage - 1)">Предыдущая</Button>
                                     }
                                     
                                     @for (int i = Math.Max(1, _currentPage - 2); i <= Math.Min(_totalPages, _currentPage + 2); i++)
                                     {
-                                        <button @onclick="() => ChangePage(i)" class="@(i == _currentPage ? "active" : "")">
+                                        <Button @onclick="() => ChangePage(i)" class="@(i == _currentPage ? "active" : "")">
                                             @i
-                                        </button>
+                                        </Button>
                                     }
                                     
                                     @if (_currentPage < _totalPages)
                                     {
-                                        <button @onclick="() => ChangePage(_currentPage + 1)">Следующая</button>
+                                        <Button @onclick="() => ChangePage(_currentPage + 1)">Следующая</Button>
                                     }
-                                </div>
+                                </Div>
                             }
                         }
                         else
@@ -180,8 +181,8 @@
 
 @code
 {
-    private IEnumerable<PageDto> _pages = new List<PageDto>();
-    private readonly PageFilterDto _filter = new();
+    private IEnumerable<becore.shared.DTOs.PageDto> _pages = new List<becore.shared.DTOs.PageDto>();
+    private readonly becore.shared.DTOs.PageFilterDto _filter = new();
     private IEnumerable<string> _availableTags = new List<string>();
     private bool _isLoading = false;
     
@@ -189,13 +190,13 @@
     private int _currentPage = 1;
     private int _totalPages = 0;
     private int _totalResults = 0;
-    private const int PageSize = 18; // 3 колонки × 6 рядов
+    private const int PageSize = 12; // 3 колонки × 4 ряда (для больших карточек)
     
     private Timer? _searchTimer;
     private const int SearchDelayMs = 500; // Задержка для debounce
     
-    // Текущие элементы страницы
-    private IEnumerable<PageDto> _currentPageItems => _pages.Skip((_currentPage - 1) * PageSize).Take(PageSize);
+    // Текущие элементы страницы (серверная пагинация)
+    private IEnumerable<becore.shared.DTOs.PageDto> _currentPageItems => _pages;
 
     protected override async Task OnInitializedAsync()
     {
@@ -223,20 +224,34 @@
         
         try
         {
-            _pages = await ContentService.SearchPagesAsync(_filter.Name, _filter.Tag);
-            _totalResults = _pages.Count();
-            _totalPages = (int)Math.Ceiling(_totalResults / (double)PageSize);
-            
-            // Если текущая страница больше общего количества, сбрасываем на первую
-            if (_currentPage > _totalPages && _totalPages > 0)
+            // Создаём поисковый запрос
+            var searchQuery = _filter.Name ?? "";
+            if (!string.IsNullOrEmpty(_filter.Tag))
             {
+                searchQuery += $" tag:{_filter.Tag}";
+            }
+            
+            var result = await ContentService.SearchContentAsync(searchQuery, _currentPage, PageSize);
+            
+            if (result != null)
+            {
+                _pages = result.Items;
+                _totalResults = result.TotalCount;
+                _totalPages = result.TotalPages;
+                _currentPage = result.CurrentPage;
+            }
+            else
+            {
+                _pages = new List<becore.shared.DTOs.PageDto>();
+                _totalResults = 0;
+                _totalPages = 0;
                 _currentPage = 1;
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Ошибка при поиске: {ex.Message}");
-            _pages = new List<PageDto>();
+            _pages = new List<becore.shared.DTOs.PageDto>();
             _totalResults = 0;
             _totalPages = 0;
         }
@@ -268,27 +283,13 @@
         await Search();
     }
 
-    private string GetFormattedDate(DateTime date)
-    {
-        return date.ToString("dd.MM.yyyy");
-    }
 
-    private string GetImageUrl(string? imageUrl)
-    {
-        return string.IsNullOrEmpty(imageUrl) ? "img/jpg/world.jpg" : imageUrl;
-    }
-
-    private string GetDescription(string? description)
-    {
-        return string.IsNullOrEmpty(description) ? "Описание отсутствует" : description;
-    }
-
-    private void ChangePage(int pageNumber)
+    private async Task ChangePage(int pageNumber)
     {
         if (pageNumber > 0 && pageNumber <= _totalPages)
         {
             _currentPage = pageNumber;
-            StateHasChanged();
+            await Search();
         }
     }
 

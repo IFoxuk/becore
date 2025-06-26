@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using becore.api.Scheme;
-using becore.api.DTOs;
+using becore.shared.DTOs;
 
 namespace becore.api.Controllers.ContentController
 {
@@ -19,7 +19,7 @@ namespace becore.api.Controllers.ContentController
         }
 
         [HttpGet("pages")]
-        public async Task<ActionResult<IEnumerable<PageDto>>> GetPages([FromQuery] PageFilter filter)
+        public async Task<ActionResult<IEnumerable<PageDto>>> GetPages([FromQuery] PageFilterDto filter)
         {
             var pages = await _contentService.GetPagesAsync(filter);
             var pageDtos = pages.Select(page => (PageDto)page);
@@ -61,7 +61,7 @@ namespace becore.api.Controllers.ContentController
             if (existingPage == null)
                 return NotFound();
 
-            updatePageDto.UpdatePage(existingPage);
+            existingPage.UpdateFromDto(updatePageDto);
             await _contentService.UpdatePageAsync(id, existingPage);
             return NoContent();
         }

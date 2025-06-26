@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "becore", "becore\becore.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "becore.api", "becore.api\becore.api.csproj", "{9BDF36C0-B329-4729-A1CB-5BD46AFFD26B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "becore.shared", "becore.shared\becore.shared.csproj", "{8ED38C25-BBFA-4AD8-806E-2B57D2D6BC1A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{9BDF36C0-B329-4729-A1CB-5BD46AFFD26B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9BDF36C0-B329-4729-A1CB-5BD46AFFD26B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9BDF36C0-B329-4729-A1CB-5BD46AFFD26B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8ED38C25-BBFA-4AD8-806E-2B57D2D6BC1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8ED38C25-BBFA-4AD8-806E-2B57D2D6BC1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8ED38C25-BBFA-4AD8-806E-2B57D2D6BC1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8ED38C25-BBFA-4AD8-806E-2B57D2D6BC1A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

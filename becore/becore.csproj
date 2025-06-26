@@ -29,4 +29,8 @@
 	  <Folder Include="Scheme\" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\becore.shared\becore.shared.csproj" />
+	</ItemGroup>
+
 </Project>

@@ -21,4 +21,12 @@
         <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="8.1.4" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\becore.shared\becore.shared.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="DTOs\" />
+    </ItemGroup>
+
 </Project>

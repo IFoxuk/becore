@@ -1,5 +1,5 @@
 using System.Text.Json;
-using System.Text;
+using becore.shared.DTOs;
 
 namespace becore.Services;
 
@@ -92,22 +92,64 @@ public class ContentApiService
             return Enumerable.Empty<string>();
         }
     }
-}
 
-// DTO модели для клиентской стороны
-public class PageDto
-{
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public string? QuadIcon { get; set; }
-    public string? WideIcon { get; set; }
-    public List<string> Tags { get; set; } = new();
-    public DateTime Created { get; set; }
-}
-
-public class PageFilterDto
-{
-    public string? Name { get; set; }
-    public string? Tag { get; set; }
+    public async Task<SearchResultDto?> SearchContentAsync(string query, int page = 1, int pageSize = 12)
+    {
+        try
+        {
+            // Парсим query для извлечения имени и тегов
+            var name = "";
+            var tag = "";
+            
+            if (!string.IsNullOrEmpty(query))
+            {
+                // Ищем теги в формате "tag:tagname"
+                var tagMatch = System.Text.RegularExpressions.Regex.Match(query, @"tag:([^\s]+)");
+                if (tagMatch.Success)
+                {
+                    tag = tagMatch.Groups[1].Value;
+                    // Удаляем тег из основного запроса
+                    query = System.Text.RegularExpressions.Regex.Replace(query, @"tag:[^\s]+", "").Trim();
+                }
+                name = query.Trim();
+            }
+            
+            var queryParams = new List<string>();
+            
+            if (!string.IsNullOrEmpty(name))
+                queryParams.Add($"name={Uri.EscapeDataString(name)}");
+                
+            if (!string.IsNullOrEmpty(tag))
+                queryParams.Add($"tag={Uri.EscapeDataString(tag)}");
+            
+            var queryString = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
+            var response = await _httpClient.GetAsync($"api/content/pages{queryString}");
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var pages = JsonSerializer.Deserialize<IEnumerable<PageDto>>(json, _jsonOptions) ?? new List<PageDto>();
+                
+                // Симулируем пагинацию на клиенте (так как API пока не поддерживает)
+                var totalCount = pages.Count();
+                var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+                var pagedItems = pages.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+                
+                return new SearchResultDto
+                {
+                    Items = pagedItems,
+                    TotalCount = totalCount,
+                    CurrentPage = page,
+                    PageSize = pageSize
+                };
+            }
+            
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при поиске контента: {ex.Message}");
+            return null;
+        }
+    }
 }

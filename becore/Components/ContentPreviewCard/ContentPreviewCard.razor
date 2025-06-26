@@ -1,101 +1,277 @@
-<Card Class="content-preview-card"
-      Width="Width.Is100"
-      Height="Height.Is100"
-      Shadow="Shadow.Large"
-      Border="Border.Rounded"
-      Background="Background.White"
-      Overflow="Overflow.Hidden"
-      Style="min-height: 300px; max-height: 350px; cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); border: 1px solid rgba(0, 0, 0, 0.06);">
+@using DTOPageDto = becore.shared.DTOs.PageDto
 
-    <Link To="/Content"
-          TextDecoration="TextDecoration.None"
-          TextColor="TextColor.Body">
+<style>
+    /* Базовые стили карточки */
+    .content-card {
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        cursor: pointer;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        overflow: hidden;
+        background: #ffffff;
+    }
+    
+    /* Hover эффекты для карточки */
+    .content-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+        border-color: rgba(0, 123, 255, 0.2);
+    }
+    
+    /* Контейнер изображения */
+    .image-container {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+    
+    /* Hover эффекты для изображения и overlay */
+    .image-container:hover .card-overlay {
+        opacity: 1;
+    }
+    
+    .image-container:hover .card-image {
+        transform: scale(1.05);
+    }
+    
+    /* Базовые стили overlay */
+    .card-overlay {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 10;
+        backdrop-filter: blur(2px);
+    }
+    
+    /* Базовые стили изображения */
+    .card-image {
+        transition: transform 0.4s ease;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    /* Стили для заголовка */
+    .card-title {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-height: 2.6em;
+        font-weight: 600;
+        color: #2c3e50;
+        line-height: 1.3;
+        margin-bottom: 8px;
+    }
+    
+    /* Стили для описания */
+    .card-text {
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #6c757d;
+        line-height: 1.5;
+        font-size: 14px;
+        min-height: 6em; /* 4 строки * 1.5 line-height */
+        max-height: 6em;
+    }
+    
+    /* Стили для тегов */
+    .tag-container {
+        margin: 12px 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    
+    .tag {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 16px;
+        font-size: 11px;
+        font-weight: 500;
+        border: none;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        transition: transform 0.2s ease;
+    }
+    
+    .tag:hover {
+        transform: translateY(-1px);
+    }
+    
+    .tag-more {
+        background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+        box-shadow: 0 2px 8px rgba(149, 165, 166, 0.3);
+    }
+    
+    /* Стили для тела карточки */
+    .card-body-custom {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    /* Placeholder для изображения */
+    .image-placeholder {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #adb5bd;
+        font-size: 48px;
+    }
+    
+    /* Адаптивность */
+    @@media (max-width: 992px) {
+        .content-card:hover {
+            transform: translateY(-6px);
+        }
+        
+        .card-title {
+            font-size: 16px;
+        }
+        
+        .card-text {
+            font-size: 13px;
+            -webkit-line-clamp: 2;
+        }
+        
+        .card-body-custom {
+            padding: 16px;
+        }
+    }
+    
+    @@media (max-width: 576px) {
+        .content-card:hover {
+            transform: translateY(-4px);
+        }
+        
+        .card-title {
+            font-size: 15px;
+        }
+        
+        .card-text {
+            font-size: 12px;
+            -webkit-line-clamp: 2;
+        }
+        
+        .card-body-custom {
+            padding: 14px;
+        }
+        
+        .tag {
+            font-size: 10px;
+            padding: 3px 8px;
+        }
+    }
+</style>
+<Card Class="content-card"
+      Width="Width.Is100"
+      Height="Height.Auto">
+
+    @* Автор над изображением *@
+    <CardHeader Padding="Padding.Is3">
+        <Small TextColor="TextColor.Muted" Style="font-size: 12px; font-weight: 500;">
+            by @(string.IsNullOrEmpty(GetAuthor()) ? "Unknown Author" : GetAuthor())
+        </Small>
+    </CardHeader>
+
+    <Link To="@($"/content/{PageData.Id}")"
+          TextDecoration="TextDecoration.None">
           
-        <Div Class="card-image-container"
-             Position="Position.Relative"
+        <Div Position="Position.Relative"
              Width="Width.Is100"
-             Height="Height.Px(160)"
-             Overflow="Overflow.Hidden"
-             Background="Background.Light">
+             Height="Height.Px(200)"
+             Class="image-container">
              
-            <CardImage Source="@ImageUrl"
-                      Alt="@Title"
-                      Class="card-image"
-                      Style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;" />
-                      
-            <Div Class="card-overlay"
-                 Position="Position.Absolute"
-                 Style="top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(45deg, rgba(0, 123, 255, 0.8), rgba(108, 117, 125, 0.8)); opacity: 0; transition: opacity 0.3s ease;"
-                 Display="Display.Flex"
-                 Flex="Flex.AlignItems.Center.JustifyContent.Center">
-                 
-                <Div Class="card-overlay-content"
-                     TextColor="TextColor.White"
-                     TextSize="TextSize.ExtraLarge"
-                     Style="text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);">
-                    <Icon Name="IconName.Eye" />
+            @if (!string.IsNullOrEmpty(PageData.ImageUrl))
+            {
+            <CardImage Source="@PageData.ImageUrl"
+                          Alt="@PageData.Title"
+                          Class="card-image" />
+            }
+            else
+            {
+                <Div Class="image-placeholder"
+                     Width="Width.Is100"
+                     Height="Height.Is100">
+                    <Icon Name="IconName.Image" />
                 </Div>
+            }
+            
+            @* Overlay с затемнением и иконкой при hover *@
+            <Div Position="Position.Absolute"
+                 Width="Width.Is100"
+                 Height="Height.Is100"
+                 Style="top: 0; left: 0; background: rgba(0, 0, 0, 0.5);"
+                 Display="Display.Flex"
+                 Flex="Flex.AlignItems.Center.JustifyContent.Center"
+                 Class="card-overlay">
+                 
+                <Icon Name="IconName.Eye"
+                      TextColor="TextColor.White"
+                      TextSize="TextSize.ExtraLarge"
+                      Style="text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);" />
             </Div>
         </Div>
     </Link>
 
-    <CardBody Class="card-content"
-              Padding="Padding.Is4"
-              Display="Display.Flex"
-              Flex="Flex.Column"
-              Style="flex: 1; gap: 12px; min-height: 0;">
-              
-        <Div Class="card-header">
-            <CardTitle Class="card-title"
-                      Size="5"
-                      Margin="Margin.Is0.FromBottom"
-                      Style="line-height: 1.3; letter-spacing: -0.02em; font-weight: 700; color: #2c3e50;"
-                      Title="@Title">@Title</CardTitle>
-                      
-            <CardSubtitle Class="card-author"
-                         TextColor="TextColor.Muted"
-                         Style="font-weight: 500; font-size: 13px;">by @Author</CardSubtitle>
-        </Div>
+    <Div Class="card-body-custom">
+        @* Заголовок *@
+        <CardTitle Class="card-title"
+                   Margin="Margin.Is0"
+                   Title="@PageData.Title">
+            @PageData.Title
+        </CardTitle>
         
-        <Div Class="card-tags"
-             Display="Display.Flex"
-             Flex="Flex.Wrap"
-             Gap="Gap.Is1"
-             Margin="Margin.Is2.FromTop.Is1.FromBottom">
-             
-            @if (Tags != null && Tags.Any())
+        @* Описание (всегда 4 строки) *@
+        <CardText Class="card-text"
+                 Margin="Margin.Is0">
+            @(string.IsNullOrEmpty(PageData.Description) ? "Описание отсутствует..." : PageData.Description)
+        </CardText>
+
+        @* Теги *@
+        <Div Class="tag-container">
+            @if (PageData.Tags != null && PageData.Tags.Any())
             {
-                @foreach (var tag in Tags.Take(3))
+                @foreach (var tag in PageData.Tags.Take(4))
                 {
-                    <Badge Color="Color.Primary"
-                           Class="tag"
-                           Style="padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); transition: transform 0.2s ease;">@tag</Badge>
+                    <Badge Class="tag">@tag</Badge>
                 }
-                @if (Tags.Count() > 3)
+                
+                @if (PageData.Tags.Count > 4)
                 {
-                    <Badge Color="Color.Secondary"
-                           Class="tag tag-more"
-                           Style="padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 20px; background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%); box-shadow: 0 2px 8px rgba(149, 165, 166, 0.3); transition: transform 0.2s ease;">+@(Tags.Count() - 3)</Badge>
+                    <Badge Class="tag tag-more">+@(PageData.Tags.Count - 4)</Badge>
                 }
             }
+            else
+            {
+                <Badge Class="tag">No Tags</Badge>
+            }
         </Div>
-        
-        <Div Class="card-description"
-             Style="flex: 1; min-height: 0;"
-             Display="Display.Flex"
-             Flex="Flex.AlignItems.Start">
-             
-            <CardText Class="description-text"
-                     Margin="Margin.Is0"
-                     Style="line-height: 1.5; font-weight: 400; color: #34495e;">@Description</CardText>
-        </Div>
-    </CardBody>
+
+        @* ID страницы (для отладки) *@
+        @if (ShowDebugInfo)
+        {
+            <Small TextColor="TextColor.Muted"
+                   Style="font-size: 10px; opacity: 0.7; margin-top: 8px;">
+                ID: @PageData.Id.ToString()[..8]...
+            </Small>
+        }
+    </Div>
 </Card>
 
 @code {
-    [Parameter] public string Title { get; set; } = string.Empty;
-    [Parameter] public string Author { get; set; } = string.Empty;
-    [Parameter] public string ImageUrl { get; set; } = string.Empty;
-    [Parameter] public string Description { get; set; } = string.Empty;
-    [Parameter] public IEnumerable<string>? Tags { get; set; }
+    [Parameter] public DTOPageDto PageData { get; set; } = new DTOPageDto { Title = "Unnamed Page" };
+    [Parameter] public bool ShowDebugInfo { get; set; } = false;
+    
+    private string GetAuthor()
+    {
+        return string.IsNullOrEmpty(PageData.Author) ? "BeCore Community" : PageData.Author;
+    }
 }

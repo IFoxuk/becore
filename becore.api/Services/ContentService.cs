@@ -1,5 +1,6 @@
 ﻿using becore.api.Scheme;
 using Microsoft.EntityFrameworkCore;
+using becore.shared.DTOs;
 
 public class ContentService
 {
@@ -10,7 +11,7 @@ public class ContentService
         _context = context;
     }
 
-    public async Task<IEnumerable<Page>> GetPagesAsync(PageFilter? filter = null)
+    public async Task<IEnumerable<Page>> GetPagesAsync(PageFilterDto? filter = null)
     {
         var query = _context.Pages
             .Include(p => p.PageTags)
@@ -114,19 +115,3 @@ public class ContentService
     }
 }
 
-// Класс фильтра для model binding
-public class PageFilter
-{
-    public string? Name { get; set; }
-    public string? Tag { get; set; }
-
-    public PageFilter()
-    {
-    }
-
-    public PageFilter(string? name = null, string? tag = null)
-    {
-        Name = name;
-        Tag = tag;
-    }
-}
