@@ -44,16 +44,27 @@
             <AuthorizeView>
                 <Authorized>
                     <BarItem>
-                        <BarLink To="/profile">
-                            <BarIcon IconName="IconName.User"/>
-                            Profile
-                        </BarLink>
-                    </BarItem>
-                    <BarItem>
-                        <BarLink Color="Color.Primary" @onclick="HandleLogout">
-                            <BarIcon IconName="_signOutIcon"/>
-                            &nbsp;Logout
-                        </BarLink>
+                        <BarDropdown>
+                            <BarDropdownToggle>
+                                <BarIcon IconName="IconName.User"/>
+                                Account
+                            </BarDropdownToggle>
+                            <BarDropdownMenu Class="GNF-regular" Style="font-size: 1.2em">
+                                <BarDropdownItem To="/profile">
+                                    <Icon Name="IconName.User" Class="me-2"/>
+                                    Profile
+                                </BarDropdownItem>
+                                <BarDropdownItem To="/debug-panel">
+                                    <Icon Name="IconName.Settings" Class="me-2"/>
+                                    Debug Panel
+                                </BarDropdownItem>
+                                <BarDropdownDivider />
+                                <BarDropdownItem @onclick="HandleLogout">
+                                    <Icon Name="IconName.Times" Class="me-2"/>
+                                    Logout
+                                </BarDropdownItem>
+                            </BarDropdownMenu>
+                        </BarDropdown>
                     </BarItem>
                 </Authorized>
 

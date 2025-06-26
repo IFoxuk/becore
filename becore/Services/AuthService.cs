@@ -342,7 +342,7 @@ public class AuthService : AuthenticationStateProvider
         AuthStateChanged.Invoke(true);
     }
 
-    private async Task<string?> GetTokenAsync()
+    public async Task<string?> GetTokenAsync()
     {
         try
         {
