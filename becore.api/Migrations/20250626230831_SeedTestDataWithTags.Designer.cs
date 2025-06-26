@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using becore.api.Scheme;
@@ -11,9 +12,11 @@ using becore.api.Scheme;
 namespace becore.api.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20250626230831_SeedTestDataWithTags")]
+    partial class SeedTestDataWithTags
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -254,7 +257,7 @@ namespace becore.api.Migrations
 
                     b.HasIndex("PageId");
 
-                    b.ToTable("AddonPack", (string)null);
+                    b.ToTable("AddonPack");
                 });
 
             modelBuilder.Entity("becore.api.Scheme.Packs.DataPack", b =>
@@ -285,7 +288,7 @@ namespace becore.api.Migrations
 
                     b.HasIndex("PageId");
 
-                    b.ToTable("DataPacks", (string)null);
+                    b.ToTable("DataPacks");
                 });
 
             modelBuilder.Entity("becore.api.Scheme.Packs.ResourcesPack", b =>
@@ -316,7 +319,7 @@ namespace becore.api.Migrations
 
                     b.HasIndex("PageId");
 
-                    b.ToTable("ResourcePack", (string)null);
+                    b.ToTable("ResourcePack");
                 });
 
             modelBuilder.Entity("becore.api.Scheme.Packs.ScriptPack", b =>
@@ -347,7 +350,7 @@ namespace becore.api.Migrations
 
                     b.HasIndex("PageId");
 
-                    b.ToTable("ScriptPack", (string)null);
+                    b.ToTable("ScriptPack");
                 });
 
             modelBuilder.Entity("becore.api.Scheme.Page", b =>
@@ -377,7 +380,7 @@ namespace becore.api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Page", (string)null);
+                    b.ToTable("Page");
                 });
 
             modelBuilder.Entity("becore.api.Scheme.PageTag", b =>
@@ -398,28 +401,7 @@ namespace becore.api.Migrations
 
                     b.HasIndex("PageId");
 
-                    b.ToTable("PageTag", (string)null);
-                });
-
-            modelBuilder.Entity("becore.api.Scheme.System.File", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("File");
+                    b.ToTable("PageTag");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -526,15 +508,6 @@ namespace becore.api.Migrations
                         .IsRequired();
 
                     b.Navigation("Page");
-                });
-
-            modelBuilder.Entity("becore.api.Scheme.System.File", b =>
-                {
-                    b.HasOne("becore.api.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("becore.api.Scheme.Page", b =>

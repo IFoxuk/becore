@@ -1,12 +1,28 @@
 using System.ComponentModel.DataAnnotations;
-using becore.api.Scheme;
 
-namespace becore.api.DTOs;
+namespace becore.shared.DTOs;
 
 /// <summary>
-/// DTO для возвращения данных о странице
+/// DTO для отображения страниц контента в интерфейсе
 /// </summary>
-public class PageDto
+public partial class PageDto
+{
+    public int Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Author { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
+    public string ImageUrl { get; set; } = string.Empty;
+    public List<string> Tags { get; set; } = new();
+    public DateTime CreatedAt { get; set; }
+    public int ViewCount { get; set; }
+    public int DownloadCount { get; set; }
+}
+
+/// <summary>
+/// DTO для API страниц (соответствует существующему API)
+/// </summary>
+public partial class ApiPageDto
 {
     public Guid Id { get; set; }
     
@@ -22,20 +38,6 @@ public class PageDto
     public string? WideIcon { get; set; }
     
     public List<string> Tags { get; set; } = new List<string>();
-
-    // Implicit operator для конвертации Page в PageDto
-    public static implicit operator PageDto(Page page)
-    {
-        return new PageDto
-        {
-            Id = page.Id,
-            Name = page.Name,
-            Description = page.Description,
-            QuadIcon = page.QuadIcon,
-            WideIcon = page.WideIcon,
-            Tags = page.Tags
-        };
-    }
 }
 
 /// <summary>
@@ -55,20 +57,6 @@ public class CreatePageDto
     public string? WideIcon { get; set; }
     
     public List<string> Tags { get; set; } = new List<string>();
-
-    // Implicit operator для конвертации CreatePageDto в Page
-    public static implicit operator Page(CreatePageDto createDto)
-    {
-        return new Page
-        {
-            Id = Guid.NewGuid(),
-            Name = createDto.Name,
-            Description = createDto.Description,
-            QuadIcon = createDto.QuadIcon,
-            WideIcon = createDto.WideIcon,
-            Tags = createDto.Tags
-        };
-    }
 }
 
 /// <summary>
@@ -88,14 +76,25 @@ public class UpdatePageDto
     public string? WideIcon { get; set; }
     
     public List<string> Tags { get; set; } = new List<string>();
+}
 
-    // Extension method для обновления существующей Page
-    public void UpdatePage(Page page)
-    {
-        page.Name = this.Name;
-        page.Description = this.Description;
-        page.QuadIcon = this.QuadIcon;
-        page.WideIcon = this.WideIcon;
-        page.Tags = this.Tags;
-    }
+/// <summary>
+/// DTO для ответа с пагинацией
+/// </summary>
+public class SearchResultDto
+{
+    public List<PageDto> Items { get; set; } = new();
+    public int TotalCount { get; set; }
+    public int CurrentPage { get; set; }
+    public int PageSize { get; set; }
+    public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
+}
+
+/// <summary>
+/// DTO для фильтрации страниц
+/// </summary>
+public class PageFilterDto
+{
+    public string? Name { get; set; }
+    public string? Tag { get; set; }
 }

@@ -1,37 +1,175 @@
-﻿@page "/search"
+@page "/search"
+@using becore.Services
+@using becore.Components.ContentPreviewCard
+@using becore.shared.DTOs
+@inject ContentApiService ContentService
+@inject IJSRuntime JSRuntime
+
+<style>
+    .content-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        padding: 1rem 0;
+        align-items: stretch;
+    }
+    
+    .content-item {
+        width: 100%;
+        height: auto;
+        min-height: 420px;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    @@media (max-width: 992px) {
+        .content-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+    }
+    
+    @@media (max-width: 576px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .content-item {
+            min-height: 380px;
+            height: auto;
+        }
+    }
+    
+    @@media (max-width: 400px) {
+        .content-item {
+            min-height: 350px;
+        }
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+    }
+    
+    .pagination button {
+        padding: 0.5rem 1rem;
+        border: 1px solid #ddd;
+        background: white;
+        color: #333;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+    
+    .pagination button:hover {
+        background: #f0f0f0;
+    }
+    
+    .pagination button.active {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+</style>
 
 <Container Fluid>
     <Row Gap="Gap.Is4">
         <Column ColumnSize="ColumnSize.Is10.Is1.WithOffset" Border="Border.Rounded" Shadow="Shadow.Default" Background="Background.Primary" Padding="Padding.Is4">
             <Text TextSize="TextSize.Heading1" TextColor="TextColor.Secondary">Поиск модификаций</Text>
         </Column>
+
         <Column ColumnSize="ColumnSize.Is10.Is1.WithOffset" Border="Border.Rounded" Shadow="Shadow.Default" Background="Background.Primary" Padding="Padding.Is4">
             <Row>
                 <Column ColumnSize="ColumnSize.Is8">
                     <Div Padding="Padding.Is4">
-                        <CardDeck Gap="Gap.Is3">
-                            <becore.Components.ContentPreviewCard.ContentPreviewCard Title="Header" Author="Author" Tags="_list" Description="descdescdescdescdescdescdescdescdescdes cdescdescdescdescdescdescdescdescdescdescdescdescdescdescdesc descdescdescdescdescdescdescdescdescdescdescdescdescdescdescdescdescdescdescdescdesc descdescdescdescdescdescdescdescdescdescdescdesc" ImageUrl="img\jpg\world.jpg"></becore.Components.ContentPreviewCard.ContentPreviewCard>
-                            <becore.Components.ContentPreviewCard.ContentPreviewCard Title="Header" Author="Author" Tags="_list" Description="desc" ImageUrl="img\jpg\world.jpg"></becore.Components.ContentPreviewCard.ContentPreviewCard>
-                            <becore.Components.ContentPreviewCard.ContentPreviewCard Title="Header" Author="Author" Tags="_list" Description="desc" ImageUrl="img\jpg\world.jpg"></becore.Components.ContentPreviewCard.ContentPreviewCard>
-                            <becore.Components.ContentPreviewCard.ContentPreviewCard Title="Header" Author="Author" Tags="_list" Description="desc" ImageUrl="img\jpg\world.jpg"></becore.Components.ContentPreviewCard.ContentPreviewCard>
-                        </CardDeck>
+                        @if (_isLoading)
+                        {
+                            <Div Flex="Flex.JustifyContent.Center" Padding="Padding.Is4">
+                                <Text TextSize="TextSize.Large" TextColor="TextColor.Primary">
+                                    <Icon Name="IconName.Circle" Animation="Animation.Spin" />
+                                    Поиск...
+                                </Text>
+                            </Div>
+                        }
+                        else if (_currentPageItems.Any())
+                        {
+                            <Div Margin="Margin.Is2.FromBottom">
+                                <Text TextSize="TextSize.Small" TextColor="TextColor.Muted">
+                                    Найдено результатов: @_totalResults (страница @_currentPage из @_totalPages)
+                                </Text>
+                            </Div>
+                            
+                            <Div class="content-grid">
+                                @foreach (var pageItem in _currentPageItems)
+                                {
+                                    <div class="content-item">
+                                        <ContentPreviewCard 
+                                            PageData="@pageItem" 
+                                            ShowDebugInfo="false" />
+                                    </div>
+                                }
+                                
+                            </Div>
+                            
+                            @if (_totalPages > 1)
+                            {
+                                <Div class="pagination">
+                                    @if (_currentPage > 1)
+                                    {
+                                        <Button @onclick="() => ChangePage(_currentPage - 1)">Предыдущая</Button>
+                                    }
+                                    
+                                    @for (int i = Math.Max(1, _currentPage - 2); i <= Math.Min(_totalPages, _currentPage + 2); i++)
+                                    {
+                                        <Button @onclick="() => ChangePage(i)" class="@(i == _currentPage ? "active" : "")">
+                                            @i
+                                        </Button>
+                                    }
+                                    
+                                    @if (_currentPage < _totalPages)
+                                    {
+                                        <Button @onclick="() => ChangePage(_currentPage + 1)">Следующая</Button>
+                                    }
+                                </Div>
+                            }
+                        }
+                        else
+                        {
+                            <Div Flex="Flex.JustifyContent.Center" Padding="Padding.Is4">
+                                <Text TextSize="TextSize.Large" TextColor="TextColor.Muted">
+                                    <Icon Name="IconName.Search" />
+                                    Ничего не найдено
+                                </Text>
+                            </Div>
+                        }
                     </Div>
                 </Column>
+
                 <Column ColumnSize="ColumnSize.Is4">
                     <Div Padding="Padding.Is4" Background="Background.Secondary" Border="Border.Rounded" Shadow="Shadow.Default">
                         <Div Flex="Flex.Column">
-                            <Div Margin="Margin.Is1" Flex="Flex.Row.AlignItems.Center">
+                            <Div Margin="Margin.Is1">
                                 <Text TextSize="TextSize.Medium">Название</Text>
                                 <Div Padding="Padding.Is2">
-                                    <TextEdit></TextEdit>
+                                    <TextEdit @bind-Text="_filter.Name" @onkeyup="OnSearchTextChanged" Placeholder="Введите название..." />
                                 </Div>
                             </Div>
+
                             <Div Margin="Margin.Is1">
                                 <Text TextSize="TextSize.Medium">Тег</Text>
-                                <becore.Components.CustomDropDown.ScrollableDropdown Items="@_list" SelectedItem="@_list.First()"></becore.Components.CustomDropDown.ScrollableDropdown>
+                                <Select TValue="string" @bind-SelectedValue="_filter.Tag" @bind-SelectedValue:after="OnTagChanged">
+                                    <SelectItem TValue="string" Value="@string.Empty">Все</SelectItem>
+                                    @foreach (var tag in _availableTags)
+                                    {
+                                        <SelectItem TValue="string" Value="@tag">@tag</SelectItem>
+                                    }
+                                </Select>
                             </Div>
+
                             <Div Margin="Margin.Is2" Flex="Flex.AlignContent.Center.JustifyContent.Center">
-                                <Button Color="Color.Success" Shadow="Shadow.Default">Поиск</Button>
+                                <Button Color="Color.Success" Shadow="Shadow.Default" @onclick="Search">Поиск</Button>
                             </Div>
                         </Div>
                     </Div>
@@ -43,17 +181,120 @@
 
 @code
 {
-    private List<string> _list { get; set; } = ["none", "средневековье", "SI-FI", "утилиты", "космос", "графика", "шейдеры", "NPC", "оружие", "техника"];
+    private IEnumerable<becore.shared.DTOs.PageDto> _pages = new List<becore.shared.DTOs.PageDto>();
+    private readonly becore.shared.DTOs.PageFilterDto _filter = new();
+    private IEnumerable<string> _availableTags = new List<string>();
+    private bool _isLoading = false;
+    
+    // Пагинация
+    private int _currentPage = 1;
+    private int _totalPages = 0;
+    private int _totalResults = 0;
+    private const int PageSize = 12; // 3 колонки × 4 ряда (для больших карточек)
+    
+    private Timer? _searchTimer;
+    private const int SearchDelayMs = 500; // Задержка для debounce
+    
+    // Текущие элементы страницы (серверная пагинация)
+    private IEnumerable<becore.shared.DTOs.PageDto> _currentPageItems => _pages;
 
-    private string SelectText = "none";
-
-    private void ChangeSeletText(string str)
+    protected override async Task OnInitializedAsync()
     {
-        SelectText = str;
+        await LoadTags();
+        await Search();
     }
-}
 
-@code
-{
+    private async Task LoadTags()
+    {
+        try
+        {
+            _availableTags = await ContentService.GetAllTagsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при загрузке тегов: {ex.Message}");
+            _availableTags = new List<string> { "средневековье", "SI-FI", "утилиты", "космос", "графика", "шейдеры", "NPC", "оружие", "техника" };
+        }
+    }
 
+    private async Task Search()
+    {
+        _isLoading = true;
+        StateHasChanged();
+        
+        try
+        {
+            // Создаём поисковый запрос
+            var searchQuery = _filter.Name ?? "";
+            if (!string.IsNullOrEmpty(_filter.Tag))
+            {
+                searchQuery += $" tag:{_filter.Tag}";
+            }
+            
+            var result = await ContentService.SearchContentAsync(searchQuery, _currentPage, PageSize);
+            
+            if (result != null)
+            {
+                _pages = result.Items;
+                _totalResults = result.TotalCount;
+                _totalPages = result.TotalPages;
+                _currentPage = result.CurrentPage;
+            }
+            else
+            {
+                _pages = new List<becore.shared.DTOs.PageDto>();
+                _totalResults = 0;
+                _totalPages = 0;
+                _currentPage = 1;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при поиске: {ex.Message}");
+            _pages = new List<becore.shared.DTOs.PageDto>();
+            _totalResults = 0;
+            _totalPages = 0;
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OnSearchTextChanged(KeyboardEventArgs e)
+    {
+        // Сбрасываем предыдущий таймер
+        _searchTimer?.Dispose();
+        
+        // Создаем новый таймер для выполнения поиска с задержкой
+        _searchTimer = new Timer(async _ => 
+        {
+            await InvokeAsync(async () => 
+            {
+                _currentPage = 1; // Сброс на первую страницу при новом поиске
+                await Search();
+            });
+        }, null, SearchDelayMs, Timeout.Infinite);
+    }
+
+    private async Task OnTagChanged()
+    {
+        await Search();
+    }
+
+
+    private async Task ChangePage(int pageNumber)
+    {
+        if (pageNumber > 0 && pageNumber <= _totalPages)
+        {
+            _currentPage = pageNumber;
+            await Search();
+        }
+    }
+
+    public void Dispose()
+    {
+        _searchTimer?.Dispose();
+    }
 }

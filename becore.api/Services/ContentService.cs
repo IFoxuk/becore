@@ -1,5 +1,6 @@
 ﻿using becore.api.Scheme;
 using Microsoft.EntityFrameworkCore;
+using becore.shared.DTOs;
 
 public class ContentService
 {
@@ -10,7 +11,7 @@ public class ContentService
         _context = context;
     }
 
-    public async Task<IEnumerable<Page>> GetPagesAsync(PageFilter? filter = null)
+    public async Task<IEnumerable<Page>> GetPagesAsync(PageFilterDto? filter = null)
     {
         var query = _context.Pages
             .Include(p => p.PageTags)
@@ -45,12 +46,17 @@ public class ContentService
 
     public async Task<Page> CreatePageAsync(Page page)
     {
-        page.Id = Guid.NewGuid();
-        
-        // Устанавливаем PageId для всех тегов
-        foreach (var pageTag in page.PageTags)
+        // Id уже установлен в implicit operator CreatePageDto
+        // Но если он пустой, устанавливаем новый
+        if (page.Id == Guid.Empty)
         {
-            pageTag.PageId = page.Id;
+            page.Id = Guid.NewGuid();
+            
+            // Обновляем PageId для всех тегов
+            foreach (var pageTag in page.PageTags)
+            {
+                pageTag.PageId = page.Id;
+            }
         }
         
         _context.Pages.Add(page);
@@ -107,21 +113,16 @@ public class ContentService
         await _context.SaveChangesAsync();
         return true;
     }
-}
 
-// Класс фильтра для model binding
-public class PageFilter
-{
-    public string? Name { get; set; }
-    public string? Tag { get; set; }
-
-    public PageFilter()
+    public async Task<IEnumerable<string>> GetAllTagsAsync()
     {
-    }
-
-    public PageFilter(string? name = null, string? tag = null)
-    {
-        Name = name;
-        Tag = tag;
+        var tags = await _context.PageTags
+            .Select(pt => pt.TagName)
+            .Distinct()
+            .OrderBy(tag => tag)
+            .ToListAsync();
+            
+        return tags;
     }
 }
+

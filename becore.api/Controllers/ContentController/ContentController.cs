@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using becore.api.Scheme;
-using becore.api.DTOs;
+using becore.shared.DTOs;
 
 namespace becore.api.Controllers.ContentController
 {
@@ -18,8 +18,8 @@ namespace becore.api.Controllers.ContentController
             _contentService = contentService;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<PageDto>>> GetPages([FromQuery] PageFilter filter)
+        [HttpGet("pages")]
+        public async Task<ActionResult<IEnumerable<PageDto>>> GetPages([FromQuery] PageFilterDto filter)
         {
             var pages = await _contentService.GetPagesAsync(filter);
             var pageDtos = pages.Select(page => (PageDto)page);
@@ -34,7 +34,7 @@ namespace becore.api.Controllers.ContentController
             return Ok(pageDtos);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("pages/{id}")]
         public async Task<ActionResult<PageDto>> GetPage(Guid id)
         {
             var page = await _contentService.GetPageByIdAsync(id);
@@ -45,7 +45,7 @@ namespace becore.api.Controllers.ContentController
             return Ok(pageDto);
         }
 
-        [HttpPost]
+        [HttpPost("pages")]
         public async Task<ActionResult<PageDto>> CreatePage(CreatePageDto createPageDto)
         {
             Page page = createPageDto; // Implicit conversion
@@ -54,19 +54,19 @@ namespace becore.api.Controllers.ContentController
             return CreatedAtAction(nameof(GetPage), new { id = createdPage.Id }, createdPageDto);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("pages/{id}")]
         public async Task<IActionResult> UpdatePage(Guid id, UpdatePageDto updatePageDto)
         {
             var existingPage = await _contentService.GetPageByIdAsync(id);
             if (existingPage == null)
                 return NotFound();
 
-            updatePageDto.UpdatePage(existingPage);
+            existingPage.UpdateFromDto(updatePageDto);
             await _contentService.UpdatePageAsync(id, existingPage);
             return NoContent();
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("pages/{id}")]
         public async Task<IActionResult> DeletePage(Guid id)
         {
             var success = await _contentService.DeletePageAsync(id);
@@ -74,6 +74,13 @@ namespace becore.api.Controllers.ContentController
                 return NotFound();
 
             return NoContent();
+        }
+
+        [HttpGet("tags")]
+        public async Task<ActionResult<IEnumerable<string>>> GetAllTags()
+        {
+            var tags = await _contentService.GetAllTagsAsync();
+            return Ok(tags);
         }
     }
 }

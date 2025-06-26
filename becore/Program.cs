@@ -24,6 +24,9 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<AuthService>());
 builder.Services.AddAuthorizationCore();
 
+// Register ContentApiService
+builder.Services.AddScoped<ContentApiService>();
+
 // Configure CORS if needed
 builder.Services.AddCors(options =>
 {
