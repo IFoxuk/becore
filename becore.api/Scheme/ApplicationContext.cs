@@ -3,6 +3,7 @@ using becore.api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using File = becore.api.Scheme.System.File;
 
 namespace becore.api.Scheme;
 
@@ -14,6 +15,7 @@ public class ApplicationContext : IdentityDbContext<ApplicationUser, IdentityRol
     public DbSet<ScriptPack> ScriptPacks { get; set; }
     public DbSet<Page> Pages { get; set; }
     public DbSet<PageTag> PageTags { get; set; }
+    public DbSet<File> Files { get; set; }
     // Identity Users are managed by IdentityDbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
