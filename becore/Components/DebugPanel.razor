@@ -72,8 +72,8 @@
                     </Field>
                     
                     <Field>
-                        <FieldLabel>Page Content</FieldLabel>
-                        <MemoEdit @bind-Text="newPageContent" Rows="4" Placeholder="Enter page content (optional)" />
+                        <FieldLabel>Page Description</FieldLabel>
+                        <MemoEdit @bind-Text="newPageContent" Rows="4" Placeholder="Enter page description (optional)" />
                     </Field>
                     
                     <Field>
@@ -250,11 +250,13 @@
             var pageData = new
             {
                 Name = newPageName.Trim(),
-                Content = newPageContent?.Trim(),
+                Description = newPageContent?.Trim(),
+                QuadIcon = (string?)null,
+                WideIcon = (string?)null,
                 Tags = newPageTags?.Split(',', StringSplitOptions.RemoveEmptyEntries)
                     .Select(t => t.Trim())
                     .Where(t => !string.IsNullOrEmpty(t))
-                    .ToArray()
+                    .ToList()
             };
 
             var response = await httpClient.PostAsJsonAsync("api/content/pages", pageData);

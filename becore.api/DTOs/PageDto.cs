@@ -59,15 +59,22 @@ public class CreatePageDto
     // Implicit operator для конвертации CreatePageDto в Page
     public static implicit operator Page(CreatePageDto createDto)
     {
-        return new Page
+        var page = new Page
         {
             Id = Guid.NewGuid(),
             Name = createDto.Name,
             Description = createDto.Description,
             QuadIcon = createDto.QuadIcon,
-            WideIcon = createDto.WideIcon,
-            Tags = createDto.Tags
+            WideIcon = createDto.WideIcon
         };
+        
+        // Устанавливаем теги после создания объекта, чтобы PageId был корректным
+        foreach (var tag in createDto.Tags)
+        {
+            page.PageTags.Add(new PageTag { TagName = tag, PageId = page.Id });
+        }
+        
+        return page;
     }
 }
 
