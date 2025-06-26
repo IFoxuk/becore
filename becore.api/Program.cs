@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Amazon.S3;
+using becore.api.S3;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +18,29 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+#region S3
+
+builder.Services.Configure<S3Options>(options =>
+{
+    options.AccessKey = builder.Configuration["S3:AWS_ACCESS_KEY"]!;
+    options.SecretKey = builder.Configuration["S3:AWS_SECRET_ACCESS_KEY"]!;
+    options.BucketName = builder.Configuration["S3:AWS_BUCKET_NAME"]!;
+    options.ServiceUrl = builder.Configuration["S3:AWS_SERVICE_URL"]!;
+});
+builder.Services.AddSingleton<IAmazonS3>(sp =>
+{
+    var options = sp.GetRequiredService<IOptions<S3Options>>().Value;
+    return new AmazonS3Client(options.AccessKey, options.SecretKey, new AmazonS3Config
+    {
+        ServiceURL = options.ServiceUrl,
+        ForcePathStyle = true
+    });
+});
+
+#endregion
+
+
 builder.Services.AddDbContext<ApplicationContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DbConnection")));
 
