@@ -1,0 +1,136 @@
+@using becore.Models
+@using becore.Services
+@using Blazorise
+@inject AuthService AuthService
+@inject IJSRuntime JSRuntime
+@inject ILogger<LoginComponent> _logger
+
+<Card Margin="Margin.Is4.OnY">
+    <CardBody>
+        <CardTitle Size="5">Вход в систему</CardTitle>
+        
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <Alert Color="Color.Danger" Visible="true">
+                <AlertMessage>@errorMessage</AlertMessage>
+            </Alert>
+        }
+        
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <Alert Color="Color.Success" Visible="true">
+                <AlertMessage>@successMessage</AlertMessage>
+            </Alert>
+        }
+
+        <EditForm Model="loginRequest" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+            
+            <Field>
+                <FieldLabel>Имя пользователя или Email</FieldLabel>
+                <TextEdit @bind-Text="loginRequest.UsernameOrEmail" 
+                         Placeholder="Введите имя пользователя или email" />
+                <ValidationMessage For="@(() => loginRequest.UsernameOrEmail)" />
+            </Field>
+
+            <Field>
+                <FieldLabel>Пароль</FieldLabel>
+                <TextEdit @bind-Text="loginRequest.Password" 
+                         Role="TextRole.Password" 
+                         Placeholder="Введите пароль" />
+                <ValidationMessage For="@(() => loginRequest.Password)" />
+            </Field>
+
+            <Field>
+                <Check @bind-Checked="loginRequest.RememberMe">Запомнить меня</Check>
+            </Field>
+
+            <Field>
+                <Button Type="ButtonType.Submit" 
+                       Color="Color.Primary" 
+                       Loading="isLoading"
+                       Block="true">
+                    @if (isLoading)
+                    {
+                        <span>Вход...</span>
+                    }
+                    else
+                    {
+                        <span>Войти</span>
+                    }
+                </Button>
+            </Field>
+        </EditForm>
+
+        <Divider />
+        
+        <div class="text-center">
+            <Button Color="Color.Link" 
+                   Clicked="@(() => OnSwitchToRegister.InvokeAsync())"
+                   Size="Size.Small">
+                Нет аккаунта? Зарегистрироваться
+            </Button>
+        </div>
+    </CardBody>
+</Card>
+
+@code {
+    [Parameter] public EventCallback OnLoginSuccess { get; set; }
+    [Parameter] public EventCallback OnSwitchToRegister { get; set; }
+
+    private LoginRequest loginRequest = new();
+    private bool isLoading = false;
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+
+    private async Task HandleLogin()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = string.Empty;
+            successMessage = string.Empty;
+
+            var result = await AuthService.LoginAsync(loginRequest);
+
+            if (result.IsSuccess)
+            {
+                successMessage = result.Message;
+                await OnLoginSuccess.InvokeAsync();
+                
+                // Очищаем форму
+                loginRequest = new LoginRequest();
+            }
+            else
+            {
+                errorMessage = result.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Ошибка при входе в систему");
+            errorMessage = "Произошла неожиданная ошибка. Попробуйте позже.";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        // Подписываемся на изменения состояния авторизации
+        AuthService.AuthStateChanged += HandleAuthStateChanged;
+    }
+
+    private void HandleAuthStateChanged(bool isAuthenticated)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        AuthService.AuthStateChanged -= HandleAuthStateChanged;
+    }
+}

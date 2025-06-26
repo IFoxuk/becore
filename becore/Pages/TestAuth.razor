@@ -1,0 +1,213 @@
+@page "/test-auth"
+@using becore.Services
+@using becore.Models
+@using Blazorise
+@inject AuthService AuthService
+@inject ILogger<TestAuth> Logger
+@inject IHttpClientFactory HttpClientFactory
+
+<PageTitle>Тест интеграции AuthService</PageTitle>
+
+<Container>
+    <Row>
+        <Column>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Тест интеграции AuthService с API</CardTitle>
+                </CardHeader>
+                <CardBody>
+                    <Div Class="mb-3">
+                        <Button Color="Color.Primary" Clicked="TestConnection">
+                            Тест соединения с API
+                        </Button>
+                        <Button Color="Color.Secondary" Clicked="TestDebugAuth" Class="ms-2">
+                            Тест Debug Auth
+                        </Button>
+                        <Button Color="Color.Info" Clicked="TestCurrentUser" Class="ms-2">
+                            Тест получения пользователя
+                        </Button>
+                        <Button Color="Color.Warning" Clicked="ClearResults" Class="ms-2">
+                            Очистить результаты
+                        </Button>
+                    </Div>
+
+                    <Div Class="mb-3">
+                        <strong>Состояние AuthService:</strong>
+                        <br />
+                        <Badge Color="@(AuthService.IsAuthenticated ? Color.Success : Color.Danger)">
+                            @(AuthService.IsAuthenticated ? "Аутентифицирован" : "Не аутентифицирован")
+                        </Badge>
+                        @if (AuthService.CurrentUser != null)
+                        {
+                            <Badge Color="Color.Info" Class="ms-2">
+                                Пользователь: @AuthService.CurrentUser.Username
+                            </Badge>
+                        }
+                    </Div>
+
+                    @if (isLoading)
+                    {
+                        <Alert Color="Color.Info">
+                            <Icon Name="IconName.Circle" Animation="Animation.Spin" />
+                            Выполнение теста...
+                        </Alert>
+                    }
+
+                    @if (!string.IsNullOrEmpty(results))
+                    {
+                        <Alert Color="Color.Light">
+                            <h5>Результаты тестов:</h5>
+                            <pre style="background: #f8f9fa; padding: 1rem; border-radius: 0.375rem; overflow-x: auto; white-space: pre-wrap;">@results</pre>
+                        </Alert>
+                    }
+
+                    @if (!string.IsNullOrEmpty(error))
+                    {
+                        <Alert Color="Color.Danger">
+                            <h5>Ошибки:</h5>
+                            <pre style="background: #f8d7da; padding: 1rem; border-radius: 0.375rem; overflow-x: auto; white-space: pre-wrap;">@error</pre>
+                        </Alert>
+                    }
+                </CardBody>
+            </Card>
+        </Column>
+    </Row>
+</Container>
+
+@code {
+    private bool isLoading = false;
+    private string results = "";
+    private string error = "";
+
+    private async Task TestConnection()
+    {
+        isLoading = true;
+        error = "";
+        results = "";
+        StateHasChanged();
+
+        try
+        {
+            results += "=== ТЕСТ СОЕДИНЕНИЯ С API ===\n";
+            results += $"Время: {DateTime.Now:HH:mm:ss}\n";
+            
+            // Проверяем HttpClient
+            if (HttpClientFactory == null)
+            {
+                results += "❌ HttpClientFactory не найден\n";
+                return;
+            }
+            results += "✅ HttpClientFactory инициализирован\n";
+
+            var httpClient = HttpClientFactory.CreateClient("ApiClient");
+            results += $"✅ HttpClient создан с BaseAddress: {httpClient.BaseAddress}\n";
+            results += $"✅ Timeout: {httpClient.Timeout}\n";
+
+            // Проверяем доступность API
+            try
+            {
+                var response = await httpClient.GetAsync("api/auth/debug-auth");
+                results += $"✅ API доступен. Статус: {response.StatusCode}\n";
+                
+                var content = await response.Content.ReadAsStringAsync();
+                results += $"📄 Ответ API:\n{content}\n";
+            }
+            catch (Exception ex)
+            {
+                results += $"❌ API недоступен: {ex.Message}\n";
+                error += $"Ошибка соединения с API: {ex}\n";
+            }
+
+            results += "\n=== КОНЕЦ ТЕСТА СОЕДИНЕНИЯ ===\n\n";
+        }
+        catch (Exception ex)
+        {
+            error += $"Критическая ошибка: {ex}\n";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task TestDebugAuth()
+    {
+        isLoading = true;
+        error = "";
+        StateHasChanged();
+
+        try
+        {
+            results += "=== ТЕСТ DEBUG AUTH ===\n";
+            results += $"Время: {DateTime.Now:HH:mm:ss}\n";
+
+            var debugResult = await AuthService.DebugAuthAsync();
+            results += $"📄 Debug Auth результат:\n{debugResult}\n";
+            
+            results += "\n=== КОНЕЦ ТЕСТА DEBUG AUTH ===\n\n";
+        }
+        catch (Exception ex)
+        {
+            error += $"Ошибка Debug Auth: {ex}\n";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task TestCurrentUser()
+    {
+        isLoading = true;
+        error = "";
+        StateHasChanged();
+
+        try
+        {
+            results += "=== ТЕСТ ПОЛУЧЕНИЯ ПОЛЬЗОВАТЕЛЯ ===\n";
+            results += $"Время: {DateTime.Now:HH:mm:ss}\n";
+
+            await AuthService.WaitForInitializationAsync();
+            results += "✅ AuthService инициализирован\n";
+
+            results += $"🔐 IsAuthenticated: {AuthService.IsAuthenticated}\n";
+            results += $"👤 CurrentUser в кеше: {(AuthService.CurrentUser != null ? AuthService.CurrentUser.Username : "null")}\n";
+
+            var user = await AuthService.GetCurrentUserAsync();
+            if (user != null)
+            {
+                results += "✅ Пользователь получен успешно:\n";
+                results += $"   ID: {user.Id}\n";
+                results += $"   Username: {user.Username}\n";
+                results += $"   Email: {user.Email}\n";
+                results += $"   CreatedAt: {user.CreatedAt}\n";
+                results += $"   LastLoginAt: {user.LastLoginAt}\n";
+                results += $"   IsActive: {user.IsActive}\n";
+            }
+            else
+            {
+                results += "❌ Пользователь не получен (null)\n";
+            }
+            
+            results += "\n=== КОНЕЦ ТЕСТА ПОЛУЧЕНИЯ ПОЛЬЗОВАТЕЛЯ ===\n\n";
+        }
+        catch (Exception ex)
+        {
+            error += $"Ошибка получения пользователя: {ex}\n";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ClearResults()
+    {
+        results = "";
+        error = "";
+        StateHasChanged();
+    }
+}

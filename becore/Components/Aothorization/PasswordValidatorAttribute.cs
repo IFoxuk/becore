@@ -8,7 +8,7 @@ public class PasswordValidatorAttribute : ValidationAttribute
         ErrorMessage = "Некорректный пароль";
     }
 
-    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
     {
         var password = value as string ?? "";
 

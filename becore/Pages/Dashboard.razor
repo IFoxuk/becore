@@ -1,5 +1,8 @@
 @page "/"
+@using becore.Services
 @inject IVersionProvider VersionProvider
+@inject AuthService AuthService
+@inject ILogger<Dashboard> Logger
 <Heading Size="HeadingSize.Is1" Margin="Margin.Is3.FromBottom">Blazorise</Heading>
 
 <Paragraph>
@@ -33,3 +36,44 @@
         Please visit the official <Anchor To="https://blazorise.com/docs/" Target="Target.Blank">Blazorise Documentation</Anchor> to learn more about the available components.
     </Paragraph>
 </Alert>
+
+<Card Margin="Margin.Is3.FromTop">
+    <CardHeader>
+        <CardTitle>🔧 Debug Tools</CardTitle>
+    </CardHeader>
+    <CardBody>
+        <Button Color="Color.Warning" Clicked="DebugAuth">
+            <Icon Name="IconName.Bug" />
+            Отладка авторизации
+        </Button>
+        
+        @if (!string.IsNullOrEmpty(debugResult))
+        {
+            <Alert Color="Color.Info" Visible="true" Margin="Margin.Is3.FromTop">
+                <AlertMessage>Результат отладки:</AlertMessage>
+                <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; font-size: 12px;">@debugResult</pre>
+            </Alert>
+        }
+    </CardBody>
+</Card>
+
+@code {
+    private string debugResult = string.Empty;
+    
+    private async Task DebugAuth()
+    {
+        try
+        {
+            debugResult = "Выполняется отладка...";
+            StateHasChanged();
+            
+            debugResult = await AuthService.DebugAuthAsync();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            debugResult = $"Ошибка: {ex.Message}";
+            StateHasChanged();
+        }
+    }
+}

@@ -1,0 +1,39 @@
+@page "/register"
+@using becore.Components.Auth
+@inject NavigationManager Navigation
+@inject AuthService AuthService
+
+<PageTitle>Регистрация - becore</PageTitle>
+
+<div class="hero is-fullheight">
+    <div class="hero-body">
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column is-4">
+                    <RegisterComponent 
+                        OnRegisterSuccess="HandleRegisterSuccess" 
+                        OnSwitchToLogin="SwitchToLogin" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, SupplyParameterFromQuery] public string? ReturnUrl { get; set; }
+
+    private Task HandleRegisterSuccess()
+    {
+        // Перенаправляем на страницу возврата или на главную
+        var url = !string.IsNullOrEmpty(ReturnUrl) ? ReturnUrl : "/";
+        Navigation.NavigateTo(url, replace: true);
+        return Task.CompletedTask;
+    }
+
+    private void SwitchToLogin()
+    {
+        // Переходим на страницу входа с сохранением ReturnUrl
+        var url = !string.IsNullOrEmpty(ReturnUrl) ? $"/login?returnUrl={Uri.EscapeDataString(ReturnUrl)}" : "/login";
+        Navigation.NavigateTo(url);
+    }
+}

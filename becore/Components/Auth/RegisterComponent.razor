@@ -1,0 +1,130 @@
+@using becore.Models
+@using becore.Services
+@using Blazorise
+@inject AuthService AuthService
+@inject ILogger<RegisterComponent> _logger
+
+<Card Margin="Margin.Is4.OnY">
+    <CardBody>
+        <CardTitle Size="5">Регистрация</CardTitle>
+        
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <Alert Color="Color.Danger" Visible="true">
+                <AlertMessage>@errorMessage</AlertMessage>
+            </Alert>
+        }
+        
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <Alert Color="Color.Success" Visible="true">
+                <AlertMessage>@successMessage</AlertMessage>
+            </Alert>
+        }
+
+        <EditForm Model="registerRequest" OnValidSubmit="HandleRegister">
+            <DataAnnotationsValidator />
+            
+            <Field>
+                <FieldLabel>Имя пользователя</FieldLabel>
+                <TextEdit @bind-Text="registerRequest.Username" 
+                         Placeholder="Введите имя пользователя" />
+                <ValidationMessage For="@(() => registerRequest.Username)" />
+            </Field>
+
+            <Field>
+                <FieldLabel>Email</FieldLabel>
+                <TextEdit @bind-Text="registerRequest.Email" 
+                         Placeholder="Введите email" />
+                <ValidationMessage For="@(() => registerRequest.Email)" />
+            </Field>
+
+            <Field>
+                <FieldLabel>Пароль</FieldLabel>
+                <TextEdit @bind-Text="registerRequest.Password" 
+                         Role="TextRole.Password" 
+                         Placeholder="Введите пароль" />
+                <ValidationMessage For="@(() => registerRequest.Password)" />
+            </Field>
+
+            <Field>
+                <FieldLabel>Подтвердите пароль</FieldLabel>
+                <TextEdit @bind-Text="registerRequest.ConfirmPassword" 
+                         Role="TextRole.Password" 
+                         Placeholder="Введите пароль повторно" />
+                <ValidationMessage For="@(() => registerRequest.ConfirmPassword)" />
+            </Field>
+
+            <Field>
+                <Button Type="ButtonType.Submit" 
+                       Color="Color.Primary" 
+                       Loading="isLoading"
+                       Block="true">
+                    @if (isLoading)
+                    {
+                        <span>Регистрация...</span>
+                    }
+                    else
+                    {
+                        <span>Зарегистрироваться</span>
+                    }
+                </Button>
+            </Field>
+        </EditForm>
+
+        <Divider />
+        
+        <div class="text-center">
+            <Button Color="Color.Link" 
+                   Clicked="@(() => OnSwitchToLogin.InvokeAsync())"
+                   Size="Size.Small">
+                Уже есть аккаунт? Войти
+            </Button>
+        </div>
+    </CardBody>
+</Card>
+
+@code {
+    [Parameter] public EventCallback OnRegisterSuccess { get; set; }
+    [Parameter] public EventCallback OnSwitchToLogin { get; set; }
+
+    private RegisterRequest registerRequest = new();
+    private bool isLoading = false;
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+
+    private async Task HandleRegister()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = string.Empty;
+            successMessage = string.Empty;
+
+            var result = await AuthService.RegisterAsync(registerRequest);
+
+            if (result.IsSuccess)
+            {
+                successMessage = result.Message;
+                await OnRegisterSuccess.InvokeAsync();
+                
+                // Очищаем форму
+                registerRequest = new RegisterRequest();
+            }
+            else
+            {
+                errorMessage = result.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Ошибка при регистрации пользователя");
+            errorMessage = "Произошла неожиданная ошибка. Попробуйте позже.";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+}
