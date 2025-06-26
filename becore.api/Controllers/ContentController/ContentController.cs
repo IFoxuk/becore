@@ -75,5 +75,12 @@ namespace becore.api.Controllers.ContentController
 
             return NoContent();
         }
+
+        [HttpGet("tags")]
+        public async Task<ActionResult<IEnumerable<string>>> GetAllTags()
+        {
+            var tags = await _contentService.GetAllTagsAsync();
+            return Ok(tags);
+        }
     }
 }

@@ -70,6 +70,21 @@ public class ContentApiService
             return null;
         }
     }
+    
+    public async Task<PageDto?> GetPageByIdAsync(int id)
+    {
+        try
+        {
+            // Получаем все страницы и ищем по hash code ID
+            var pages = await SearchPagesAsync();
+            return pages.FirstOrDefault(p => p.Id == id);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при получении страницы по ID: {ex.Message}");
+            return null;
+        }
+    }
 
     public async Task<IEnumerable<string>> GetAllTagsAsync()
     {

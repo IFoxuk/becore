@@ -1,4 +1,4 @@
-@using DTOPageDto = becore.shared.DTOs.PageDto
+@using becore.shared.DTOs
 
 <style>
     /* Базовые стили карточки */
@@ -267,7 +267,7 @@
 </Card>
 
 @code {
-    [Parameter] public DTOPageDto PageData { get; set; } = new DTOPageDto { Title = "Unnamed Page" };
+    [Parameter] public PageDto PageData { get; set; } = new PageDto { Title = "Unnamed Page" };
     [Parameter] public bool ShowDebugInfo { get; set; } = false;
     
     private string GetAuthor()

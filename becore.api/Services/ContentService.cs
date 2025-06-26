@@ -113,5 +113,16 @@ public class ContentService
         await _context.SaveChangesAsync();
         return true;
     }
+
+    public async Task<IEnumerable<string>> GetAllTagsAsync()
+    {
+        var tags = await _context.PageTags
+            .Select(pt => pt.TagName)
+            .Distinct()
+            .OrderBy(tag => tag)
+            .ToListAsync();
+            
+        return tags;
+    }
 }
 

@@ -1,85 +1,178 @@
-﻿@page "/content"
+@page "/content/{id:int}"
 @using System.Text
+@using becore.shared.DTOs
+@using becore.Services
+@inject ContentApiService ContentService
 
-<Container Fluid>
-    <Row Margin="Margin.Is3">
-        <Column Padding="Padding.Is4" ColumnSize="ColumnSize.Is10.Is1.WithOffset" Background="Background.Primary" Border="Border.Rounded" Shadow="Shadow.Default">
-            <Row>
-                <Column ColumnSize="ColumnSize.Is8" Padding="Padding.Is5">
-                    <Carousel>
-                        <CarouselSlide Name="1">
-                            <Image Source="\img\jpg\ratio-pref-16-9.png" Border="Border.Rounded"></Image>
-                        </CarouselSlide>
-                        <CarouselSlide Name="2">
-                            <Image Source="\img\jpg\ratio-pref-16-9.png" Border="Border.Rounded"></Image>
-                        </CarouselSlide>
-                    </Carousel>
-                </Column>
-                <Column ColumnSize="ColumnSize.Is4" Padding="Padding.Is2" Flex="Flex.JustifyContent.Center.Column">
-                    <Div Background="Background.Secondary" Border="Border.Rounded" Padding="Padding.Is3" Height="Height.Is100" Width="Width.Is100">
-                        <Row>
-                            <Column>
-                                <Div>
-                                    <Image Source="\img\jpg\ratio-pref-16-9.png" Border="Border.Rounded"></Image>
+<PageTitle>@(pageData?.Title ?? "Content Page")</PageTitle>
+
+@if (isLoading)
+{
+    <Container Fluid>
+        <Row Margin="Margin.Is3">
+            <Column ColumnSize="ColumnSize.Is10.Is1.WithOffset" Background="Background.Primary" Border="Border.Rounded" Shadow="Shadow.Default" Padding="Padding.Is4">
+                <Div Flex="Flex.JustifyContent.Center" Padding="Padding.Is4">
+                    <Text TextSize="TextSize.Large" TextColor="TextColor.Primary">
+                        <Icon Name="IconName.Circle" Animation="Animation.Spin" />
+                        Загрузка...
+                    </Text>
+                </Div>
+            </Column>
+        </Row>
+    </Container>
+}
+else if (pageData == null)
+{
+    <Container Fluid>
+        <Row Margin="Margin.Is3">
+            <Column ColumnSize="ColumnSize.Is10.Is1.WithOffset" Background="Background.Primary" Border="Border.Rounded" Shadow="Shadow.Default" Padding="Padding.Is4">
+                <Div Flex="Flex.JustifyContent.Center" Padding="Padding.Is4">
+                    <Text TextSize="TextSize.Heading2" TextColor="TextColor.Danger">
+                        <Icon Name="IconName.ExclamationTriangle" />
+                        Страница не найдена
+                    </Text>
+                </Div>
+            </Column>
+        </Row>
+    </Container>
+}
+else
+{
+    <Container Fluid>
+        <!-- Header with image and basic info -->
+        <Row Margin="Margin.Is3">
+            <Column Padding="Padding.Is4" ColumnSize="ColumnSize.Is10.Is1.WithOffset" Background="Background.Primary" Border="Border.Rounded" Shadow="Shadow.Default">
+                <Row>
+                    <Column ColumnSize="ColumnSize.Is8" Padding="Padding.Is5">
+                        <Image Source="@pageData.ImageUrl" Border="Border.Rounded" Alt="@pageData.Title"></Image>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is4" Padding="Padding.Is2" Flex="Flex.JustifyContent.Center.Column">
+                        <Div Background="Background.Secondary" Border="Border.Rounded" Padding="Padding.Is3" Height="Height.Is100" Width="Width.Is100">
+                            <Text TextSize="TextSize.Heading2" Margin="Margin.Is2.FromBottom">@pageData.Title</Text>
+                            
+                            <!-- Author -->
+                            <Div Margin="Margin.Is2.FromBottom">
+                                <Text TextSize="TextSize.Small" TextColor="TextColor.Muted">
+                                    <Icon Name="IconName.User" />
+                                    by @pageData.Author
+                                </Text>
+                            </Div>
+                            
+                            <!-- Stats -->
+                            <Div Margin="Margin.Is2.FromBottom">
+                                <Text TextSize="TextSize.Small" TextColor="TextColor.Muted">
+                                    <Icon Name="IconName.Eye" /> @pageData.ViewCount просмотров
+                                </Text>
+                                <br/>
+                                <Text TextSize="TextSize.Small" TextColor="TextColor.Muted">
+                                    <Icon Name="IconName.Download" /> @pageData.DownloadCount загрузок
+                                </Text>
+                            </Div>
+                            
+                            <!-- Tags -->
+                            @if (pageData.Tags.Any())
+                            {
+                                <Div Margin="Margin.Is2.FromBottom">
+                                    <Text TextSize="TextSize.Small" TextColor="TextColor.Muted" Margin="Margin.Is1.FromBottom">Теги:</Text>
+                                    <Div Flex="Flex.Wrap" Gap="Gap.Is1">
+                                        @foreach (var tag in pageData.Tags)
+                                        {
+                                            <Badge Color="Color.Secondary">@tag</Badge>
+                                        }
+                                    </Div>
                                 </Div>
-                            </Column>
-                        </Row>
-                        <Row>
-                            <Column>
-                                <Div>
-                                    <Text TextSize="TextSize.Heading2">Header</Text>
+                            }
+                            
+                            <!-- Description -->
+                            <Div Flex="Flex.Column">
+                                <Text TextSize="TextSize.Small">@pageData.Description</Text>
+                            </Div>
+                        </Div>
+                    </Column>
+                </Row>
+            </Column>
+        </Row>
+        
+        <!-- Download Section -->
+        <Row Margin="Margin.Is3">
+            <Column Padding="Padding.Is4" Background="Background.Primary" Border="Border.Rounded" Shadow="Shadow.Default" ColumnSize="ColumnSize.Is10.Is1.WithOffset">
+                <Row>
+                    <Column ColumnSize="ColumnSize.Is12" Padding="Padding.Is2">
+                        <Div Flex="Flex.JustifyContent.Center" Gap="Gap.Is2">
+                            <Button Color="Color.Success" Shadow="Shadow.Default" Size="Size.Large">
+                                <Icon Name="IconName.Download" />
+                                Скачать
+                            </Button>
+                            <Button Color="Color.Info" Shadow="Shadow.Default" Size="Size.Large" To="/search">
+                                <Icon Name="IconName.ArrowLeft" />
+                                Назад к поиску
+                            </Button>
+                        </Div>
+                    </Column>
+                </Row>
+            </Column>
+        </Row>
+        
+        <!-- Content Section (if exists) -->
+        @if (!string.IsNullOrEmpty(contentData))
+        {
+            <Row Margin="Margin.Is3">
+                <Column Padding="Padding.Is4" Background="Background.Primary" Border="Border.Rounded" Shadow="Shadow.Default" ColumnSize="ColumnSize.Is10.Is1.WithOffset">
+                    <Row>
+                        <Column ColumnSize="ColumnSize.Is8" Padding="Padding.Is2">
+                            <Div Background="Background.Light" Border="Border.Rounded" Padding="Padding.Is4">
+                                <Text TextSize="TextSize.Heading3" Margin="Margin.Is3.FromBottom">Описание:</Text>
+                                <Div Class="text-break" TextSize="TextSize.Medium">
+                                    @((MarkupString)contentData)
                                 </Div>
-                                <Div Flex="Flex.Column">
-                                    <Text>Descriptions</Text>
-                                    <Text>Descriptions</Text>
-                                    <Text>Descriptions</Text>
-                                    <Text>Descriptions</Text>
-                                </Div>
-                            </Column>
-                        </Row>
-                    </Div>
+                            </Div>
+                        </Column>
+                        <Column ColumnSize="ColumnSize.Is4" Padding="Padding.Is2">
+                            <Div Border="Border.Rounded" Background="Background.Secondary" Padding="Padding.Is4">
+                                <Text TextSize="TextSize.Heading4" Margin="Margin.Is2.FromBottom">Информация о странице</Text>
+                                <Text TextSize="TextSize.Small" TextColor="TextColor.Muted">
+                                    ID: @pageData.Id
+                                </Text>
+                                <br/>
+                                <Text TextSize="TextSize.Small" TextColor="TextColor.Muted">
+                                    Создано: @pageData.CreatedAt.ToString("dd.MM.yyyy")
+                                </Text>
+                            </Div>
+                        </Column>
+                    </Row>
                 </Column>
             </Row>
-        </Column>
-    </Row>
-    <Row Margin="Margin.Is3">
-        <Column Padding="Padding.Is4" Background="Background.Primary" Border="Border.Rounded" Shadow="Shadow.Default" ColumnSize="ColumnSize.Is10.Is1.WithOffset">
-            <Row>
-                <Column ColumnSize="ColumnSize.Is12" Padding="Padding.Is2">
-                    <Div>
-                        <Button Color="Color.Primary" Shadow="Shadow.Default">Description</Button>
-                        <Button Color="Color.Primary" Shadow="Shadow.Default">Download</Button>
-                    </Div>
-                </Column>
-            </Row>
-        </Column>
-    </Row>
-    <Row Margin="Margin.Is3">
-        <Column Padding="Padding.Is4" Background="Background.Primary" Border="Border.Rounded" Shadow="Shadow.Default" ColumnSize="ColumnSize.Is10.Is1.WithOffset">
-            <Row>
-                <Column ColumnSize="ColumnSize.Is8" Padding="Padding.Is2">
-                    <Div Padding="Padding.Is4" Class="text-break" TextSize="TextSize.Medium">
-                        <Text>@GetText2001()</Text>
-                    </Div>
-                </Column>
-                <Column ColumnSize="ColumnSize.Is4" Padding="Padding.Is2">
-                    <Div Border="Border.Rounded" Background="Background.Secondary" Padding="Padding.Is4">
-                        author
-                    </Div>
-                </Column>
-            </Row>
-        </Column>
-    </Row>
-</Container>
+        }
+    </Container>
+}
 
 @code {
-    private string GetText2001()
+    [Parameter] public int Id { get; set; }
+    private PageDto? pageData;
+    private string contentData = string.Empty;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
     {
-        StringBuilder bulder = new();
-        for(int i = 0; i < 2001;i++)
+        try
         {
-            bulder.Append("t");
+            // Получаем страницу по int ID (hash code)
+            pageData = await ContentService.GetPageByIdAsync(Id);
+            
+            // Загружаем контент из поля Content
+            if (pageData != null)
+            {
+                contentData = !string.IsNullOrEmpty(pageData.Content) ? pageData.Content : pageData.Description;
+            }
         }
-        return bulder.ToString();
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при загрузке страницы: {ex.Message}");
+            pageData = null;
+        }
+        finally
+        {
+            isLoading = false;
+        }
     }
 }
