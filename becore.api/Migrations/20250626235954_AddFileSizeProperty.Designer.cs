@@ -12,8 +12,8 @@ using becore.api.Scheme;
 namespace becore.api.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20250626230831_SeedTestDataWithTags")]
-    partial class SeedTestDataWithTags
+    [Migration("20250626235954_AddFileSizeProperty")]
+    partial class AddFileSizeProperty
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -404,6 +404,30 @@ namespace becore.api.Migrations
                     b.ToTable("PageTag");
                 });
 
+            modelBuilder.Entity("becore.api.Scheme.System.File", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("File");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
@@ -508,6 +532,15 @@ namespace becore.api.Migrations
                         .IsRequired();
 
                     b.Navigation("Page");
+                });
+
+            modelBuilder.Entity("becore.api.Scheme.System.File", b =>
+                {
+                    b.HasOne("becore.api.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("becore.api.Scheme.Page", b =>

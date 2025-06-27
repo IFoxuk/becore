@@ -8,5 +8,6 @@ namespace becore.api.Scheme.System;
 public class File : DbEntity
 {
     [Required] [MaxLength(32)] public required string Type { get; set; }
+    public long Size { get; set; }
     public ApplicationUser? User { get; set; }
 }

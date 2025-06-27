@@ -254,7 +254,7 @@ namespace becore.api.Migrations
 
                     b.HasIndex("PageId");
 
-                    b.ToTable("AddonPack", (string)null);
+                    b.ToTable("AddonPack");
                 });
 
             modelBuilder.Entity("becore.api.Scheme.Packs.DataPack", b =>
@@ -285,7 +285,7 @@ namespace becore.api.Migrations
 
                     b.HasIndex("PageId");
 
-                    b.ToTable("DataPacks", (string)null);
+                    b.ToTable("DataPacks");
                 });
 
             modelBuilder.Entity("becore.api.Scheme.Packs.ResourcesPack", b =>
@@ -316,7 +316,7 @@ namespace becore.api.Migrations
 
                     b.HasIndex("PageId");
 
-                    b.ToTable("ResourcePack", (string)null);
+                    b.ToTable("ResourcePack");
                 });
 
             modelBuilder.Entity("becore.api.Scheme.Packs.ScriptPack", b =>
@@ -347,7 +347,7 @@ namespace becore.api.Migrations
 
                     b.HasIndex("PageId");
 
-                    b.ToTable("ScriptPack", (string)null);
+                    b.ToTable("ScriptPack");
                 });
 
             modelBuilder.Entity("becore.api.Scheme.Page", b =>
@@ -377,7 +377,7 @@ namespace becore.api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Page", (string)null);
+                    b.ToTable("Page");
                 });
 
             modelBuilder.Entity("becore.api.Scheme.PageTag", b =>
@@ -398,7 +398,7 @@ namespace becore.api.Migrations
 
                     b.HasIndex("PageId");
 
-                    b.ToTable("PageTag", (string)null);
+                    b.ToTable("PageTag");
                 });
 
             modelBuilder.Entity("becore.api.Scheme.System.File", b =>
@@ -406,6 +406,9 @@ namespace becore.api.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Type")
                         .IsRequired()

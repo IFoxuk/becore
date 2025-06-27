@@ -1,20 +1,23 @@
 using System.Net;
-using Amazon.S3;
-using Amazon.S3.Model;
-using becore.api.S3;
-using Microsoft.AspNetCore.Http.HttpResults;
+using becore.api.Models;
+using becore.api.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
+using File = becore.api.Scheme.System.File;
 
 namespace becore.api.Controllers;
 
 [ApiController]
 [Route("api/s3")]
-public class S3Controller(IOptions<S3Options> options, IAmazonS3 s3Client, ILogger<S3Controller> logger) : ControllerBase
+public class S3Controller : ControllerBase
 {
-    private readonly S3Options _options = options.Value;
-    private readonly IAmazonS3 _s3Client = s3Client;
-    private readonly ILogger<S3Controller> _logger = logger;
+    private readonly FileS3Service _fileS3Service;
+    private readonly ILogger<S3Controller> _logger;
+
+    public S3Controller(FileS3Service fileS3Service, ILogger<S3Controller> logger)
+    {
+        _fileS3Service = fileS3Service;
+        _logger = logger;
+    }
     
     // Разрешенные типы файлов изображений
     private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".tiff" };
@@ -27,8 +30,7 @@ public class S3Controller(IOptions<S3Options> options, IAmazonS3 s3Client, ILogg
     private const long MaxFileSize = 5 * 1024 * 1024;
 
     [HttpPost("image/{id}")]
-    public async Task<ActionResult<PutObjectResponse>> UploadImage([FromRoute] Guid id,
-        [FromForm(Name = "Data")] IFormFile file)
+    public async Task<IActionResult> UploadImage([FromRoute] Guid id, [FromForm(Name = "Data")] IFormFile file)
     {
         try
         {
@@ -43,51 +45,36 @@ public class S3Controller(IOptions<S3Options> options, IAmazonS3 s3Client, ILogg
                 return BadRequest(new { errors = validationResult.Errors });
             }
 
-            var request = new PutObjectRequest
+            // Создаем FileModel для работы с FileS3Service
+            var fileModel = new FileModel
             {
-                BucketName = _options.BucketName,
-                Key = id.ToString(),
-                ContentType = file.ContentType,
-                InputStream = file.OpenReadStream(),
-                ServerSideEncryptionMethod = ServerSideEncryptionMethod.AES256,
-                Metadata = 
+                Entity = new File
                 {
-                    ["original-name"] = file.FileName,
-                    ["upload-date"] = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                    ["file-size"] = file.Length.ToString()
-                }
+                    Id = id,
+                    Type = file.ContentType
+                },
+                Data = file.OpenReadStream()
             };
-            
-            var response = await _s3Client.PutObjectAsync(request);
-            
-            if (response.HttpStatusCode == HttpStatusCode.OK)
+
+            var result = await _fileS3Service.CreateAsync(fileModel);
+
+            if (result != null)
             {
-                _logger.LogInformation("Successfully uploaded image for ID: {Id}, ETag: {ETag}", id, response.ETag);
-                return Ok(new { 
-                    success = true, 
-                    id = id, 
-                    etag = response.ETag,
-                    uploadedAt = DateTime.UtcNow,
+                _logger.LogInformation("Successfully uploaded image for ID: {Id}, Size: {Size} bytes", id, result.Entity.Size);
+                return Ok(new {
+                    success = true,
+                    id = result.Entity.Id,
                     fileName = file.FileName,
-                    fileSize = file.Length
+                    fileSize = result.Entity.Size,
+                    contentType = result.Entity.Type,
+                    uploadedAt = DateTime.UtcNow
                 });
             }
             else
             {
-                _logger.LogError("S3 upload failed for ID: {Id}, StatusCode: {StatusCode}", id, response.HttpStatusCode);
-                return StatusCode(500, new { error = "Upload failed", statusCode = response.HttpStatusCode });
+                _logger.LogError("Upload failed for ID: {Id}", id);
+                return BadRequest(new { error = "Upload failed" });
             }
-        }
-        catch (AmazonS3Exception ex)
-        {
-            _logger.LogError(ex, "S3 exception during upload for ID: {Id}. ErrorCode: {ErrorCode}, ErrorMessage: {ErrorMessage}", 
-                id, ex.ErrorCode, ex.Message);
-            return StatusCode(500, new { error = "S3 service error", details = ex.Message, errorCode = ex.ErrorCode });
-        }
-        catch (ArgumentException ex)
-        {
-            _logger.LogError(ex, "Invalid argument during upload for ID: {Id}", id);
-            return BadRequest(new { error = "Invalid request parameters", details = ex.Message });
         }
         catch (Exception ex)
         {
@@ -103,38 +90,21 @@ public class S3Controller(IOptions<S3Options> options, IAmazonS3 s3Client, ILogg
         {
             _logger.LogInformation("Retrieving image for ID: {Id}", id);
             
-            var objectRequest = new GetObjectRequest
-            {
-                BucketName = _options.BucketName,
-                Key = id.ToString()
-            };
+            var fileModel = await _fileS3Service.GetAsync(id);
 
-            var response = await _s3Client.GetObjectAsync(objectRequest);
-            
-            if (response.HttpStatusCode == HttpStatusCode.OK)
+            if (fileModel == null)
             {
-                _logger.LogInformation("Successfully retrieved image for ID: {Id}, ContentType: {ContentType}, Size: {Size}", 
-                    id, response.Headers.ContentType, response.ContentLength);
-                    
-                // Добавляем кэширование заголовки
-                Response.Headers.CacheControl = "public, max-age=86400"; // 24 часа
-                Response.Headers.ETag = response.ETag;
-                
-                return File(response.ResponseStream, response.Headers.ContentType ?? "application/octet-stream");
+                _logger.LogWarning("Image not found for ID: {Id}", id);
+                return NotFound(new { error = "Image not found", id });
             }
+
+            _logger.LogInformation("Successfully retrieved image for ID: {Id}, ContentType: {ContentType}, Size: {Size}", 
+                id, fileModel.Entity.Type, fileModel.Entity.Size);
+                
+            // Добавляем кэширование заголовки
+            Response.Headers.CacheControl = "public, max-age=86400"; // 24 часа
             
-            _logger.LogWarning("Image not found for ID: {Id}, StatusCode: {StatusCode}", id, response.HttpStatusCode);
-            return NotFound(new { error = "Image not found", id = id });
-        }
-        catch (AmazonS3Exception ex) when (ex.ErrorCode == "NoSuchKey")
-        {
-            _logger.LogWarning("Image not found in S3 for ID: {Id}", id);
-            return NotFound(new { error = "Image not found", id = id });
-        }
-        catch (AmazonS3Exception ex)
-        {
-            _logger.LogError(ex, "S3 exception during image retrieval for ID: {Id}. ErrorCode: {ErrorCode}", id, ex.ErrorCode);
-            return StatusCode(500, new { error = "S3 service error", details = ex.Message, errorCode = ex.ErrorCode });
+            return File(fileModel.Data, fileModel.Entity.Type ?? "application/octet-stream");
         }
         catch (Exception ex)
         {
@@ -150,38 +120,18 @@ public class S3Controller(IOptions<S3Options> options, IAmazonS3 s3Client, ILogg
         {
             _logger.LogInformation("Deleting image for ID: {Id}", id);
             
-            // Сначала проверяем, существует ли объект
-            try
-            {
-                await _s3Client.GetObjectMetadataAsync(_options.BucketName, id.ToString());
-            }
-            catch (AmazonS3Exception ex) when (ex.ErrorCode == "NotFound" || ex.ErrorCode == "NoSuchKey")
-            {
-                _logger.LogWarning("Attempted to delete non-existent image for ID: {Id}", id);
-                return NotFound(new { error = "Image not found", id = id });
-            }
+            var success = await _fileS3Service.DeleteAsync(id);
             
-            var objectRequest = new DeleteObjectRequest
-            {
-                BucketName = _options.BucketName,
-                Key = id.ToString()
-            };
-            
-            var response = await _s3Client.DeleteObjectAsync(objectRequest);
-            
-            if (response.HttpStatusCode == HttpStatusCode.NoContent)
+            if (success)
             {
                 _logger.LogInformation("Successfully deleted image for ID: {Id}", id);
                 return NoContent();
             }
-            
-            _logger.LogError("Failed to delete image for ID: {Id}, StatusCode: {StatusCode}", id, response.HttpStatusCode);
-            return StatusCode(500, new { error = "Delete failed", statusCode = response.HttpStatusCode });
-        }
-        catch (AmazonS3Exception ex)
-        {
-            _logger.LogError(ex, "S3 exception during image deletion for ID: {Id}. ErrorCode: {ErrorCode}", id, ex.ErrorCode);
-            return StatusCode(500, new { error = "S3 service error", details = ex.Message, errorCode = ex.ErrorCode });
+            else
+            {
+                _logger.LogWarning("Image not found for deletion, ID: {Id}", id);
+                return NotFound(new { error = "Image not found", id });
+            }
         }
         catch (Exception ex)
         {

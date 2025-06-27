@@ -11,10 +11,10 @@ namespace becore.api.Controllers.SystemControllers;
 [Route("api/file")]
 public class FileController : ControllerBase
 {
-    private readonly FileService _fileService;
+    private readonly FileS3Service _fileService;
     private readonly UserManager<ApplicationUser> _user;
 
-    public FileController(FileService fileService, UserManager<ApplicationUser> user)
+    public FileController(FileS3Service fileService, UserManager<ApplicationUser> user)
     {
         _fileService = fileService;
         _user = user;
@@ -24,7 +24,24 @@ public class FileController : ControllerBase
     public async Task<IActionResult> GetFile(Guid id)
     {
         var file = await _fileService.GetAsync(id);
-        return file != null ? Ok(file) : NotFound();
+        if (file == null) return NotFound();
+        
+        return File(file.Data, file.Entity.Type ?? "application/octet-stream", $"file_{id}");
+    }
+    
+    [HttpGet("{id:guid}/info")]
+    public async Task<IActionResult> GetFileInfo(Guid id)
+    {
+        var file = await _fileService.GetAsync(id);
+        if (file == null) return NotFound();
+        
+        // Return only file metadata without the stream
+        return Ok(new {
+            Id = file.Entity.Id,
+            Type = file.Entity.Type,
+            Size = file.Entity.Size,
+            UserId = file.Entity.User?.Id
+        });
     }
 
     [HttpPost("{userId}")]
@@ -40,7 +57,15 @@ public class FileController : ControllerBase
             Data = data.OpenReadStream()
         });
         
-        return file != null ? Ok(file) : BadRequest();
+        if (file == null) return BadRequest();
+        
+        // Return only file metadata
+        return Ok(new {
+            Id = file.Entity.Id,
+            Type = file.Entity.Type,
+            Size = file.Entity.Size,
+            UserId = file.Entity.User?.Id
+        });
     }
 
     [HttpDelete("{id:guid}")]
@@ -49,9 +74,8 @@ public class FileController : ControllerBase
         if (await _fileService.GetAsync(id) == null)
             return NotFound();
         
-        var deleteResult = _fileService.DeleteAsync(id);
-        await Task.Run(() => deleteResult);
-        return deleteResult.IsCompleted ? Ok() : BadRequest();
+        var deleteResult = await _fileService.DeleteAsync(id);
+        return deleteResult ? Ok() : BadRequest();
     }
 
     [HttpPut()]
@@ -66,7 +90,16 @@ public class FileController : ControllerBase
             Entity = file,
             Data = data.OpenReadStream()
         });
-        return newFile != null ? Ok(newFile) : BadRequest();
+        
+        if (newFile == null) return BadRequest();
+        
+        // Return only file metadata
+        return Ok(new {
+            Id = newFile.Entity.Id,
+            Type = newFile.Entity.Type,
+            Size = newFile.Entity.Size,
+            UserId = newFile.Entity.User?.Id
+        });
     }
     
 }
