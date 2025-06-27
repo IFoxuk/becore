@@ -67,7 +67,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
 .AddDefaultTokenProviders();
 
 // Register services
-builder.Services.AddScoped<FileS3Service>();
+builder.Services.AddScoped<IFileS3Service, FileS3Service>();
 builder.Services.AddScoped<ContentService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();

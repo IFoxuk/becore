@@ -167,4 +167,288 @@ public class ContentApiService
             return null;
         }
     }
+
+    #region Methods for working with pages and icons
+
+    /// <summary>
+    /// Создает новую страницу с иконками
+    /// </summary>
+    public async Task<PageDto?> CreatePageWithIconsAsync(CreatePageWithIconsDto dto)
+    {
+        try
+        {
+            using var formData = new MultipartFormDataContent();
+
+            // Add text fields
+            formData.Add(new StringContent(dto.userId.ToString()), "userId");
+
+            // Add text fields
+            formData.Add(new StringContent(dto.Name), "Name");
+            
+            if (!string.IsNullOrEmpty(dto.Description))
+                formData.Add(new StringContent(dto.Description), "Description");
+            
+            if (!string.IsNullOrEmpty(dto.Content))
+                formData.Add(new StringContent(dto.Content), "Content");
+            
+            if (!string.IsNullOrEmpty(dto.Tags))
+                formData.Add(new StringContent(dto.Tags), "Tags");
+            
+            // Add file fields
+            if (dto.QuadIcon != null)
+            {
+                var quadIconContent = new StreamContent(dto.QuadIcon.OpenReadStream());
+                quadIconContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(dto.QuadIcon.ContentType);
+                formData.Add(quadIconContent, "QuadIcon", dto.QuadIcon.FileName);
+            }
+            
+            if (dto.WideIcon != null)
+            {
+                var wideIconContent = new StreamContent(dto.WideIcon.OpenReadStream());
+                wideIconContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(dto.WideIcon.ContentType);
+                formData.Add(wideIconContent, "WideIcon", dto.WideIcon.FileName);
+            }
+            
+            var response = await _httpClient.PostAsync("api/content/pages/with-icons", formData);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                return JsonSerializer.Deserialize<PageDto>(json, _jsonOptions);
+            }
+            
+            var errorContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Ошибка создания страницы: {response.StatusCode}, {errorContent}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при создании страницы с иконками: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Обновляет страницу с иконками
+    /// </summary>
+    public async Task<bool> UpdatePageWithIconsAsync(Guid pageId, UpdatePageWithIconsDto dto)
+    {
+        try
+        {
+            using var formData = new MultipartFormDataContent();
+            
+            // Add text fields
+            formData.Add(new StringContent(dto.Name), "Name");
+            
+            if (!string.IsNullOrEmpty(dto.Description))
+                formData.Add(new StringContent(dto.Description), "Description");
+            
+            if (!string.IsNullOrEmpty(dto.Content))
+                formData.Add(new StringContent(dto.Content), "Content");
+            
+            if (!string.IsNullOrEmpty(dto.Tags))
+                formData.Add(new StringContent(dto.Tags), "Tags");
+            
+            // Add boolean flags
+            formData.Add(new StringContent(dto.ReplaceQuadIcon.ToString().ToLower()), "ReplaceQuadIcon");
+            formData.Add(new StringContent(dto.ReplaceWideIcon.ToString().ToLower()), "ReplaceWideIcon");
+            
+            // Add file fields
+            if (dto.QuadIcon != null)
+            {
+                var quadIconContent = new StreamContent(dto.QuadIcon.OpenReadStream());
+                quadIconContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(dto.QuadIcon.ContentType);
+                formData.Add(quadIconContent, "QuadIcon", dto.QuadIcon.FileName);
+            }
+            
+            if (dto.WideIcon != null)
+            {
+                var wideIconContent = new StreamContent(dto.WideIcon.OpenReadStream());
+                wideIconContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(dto.WideIcon.ContentType);
+                formData.Add(wideIconContent, "WideIcon", dto.WideIcon.FileName);
+            }
+            
+            var response = await _httpClient.PutAsync($"api/content/pages/{pageId}/with-icons", formData);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Ошибка обновления страницы: {response.StatusCode}, {errorContent}");
+            }
+            
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при обновлении страницы с иконками: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Загружает иконки для существующей страницы
+    /// </summary>
+    public async Task<bool> UploadIconsAsync(Guid pageId, UploadIconsDto dto)
+    {
+        try
+        {
+            if (!dto.HasFilesToUpload)
+            {
+                Console.WriteLine("Нет файлов для загрузки");
+                return false;
+            }
+            
+            using var formData = new MultipartFormDataContent();
+            
+            // Add file fields
+            if (dto.QuadIcon != null)
+            {
+                var quadIconContent = new StreamContent(dto.QuadIcon.OpenReadStream());
+                quadIconContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(dto.QuadIcon.ContentType);
+                formData.Add(quadIconContent, "QuadIcon", dto.QuadIcon.FileName);
+            }
+            
+            if (dto.WideIcon != null)
+            {
+                var wideIconContent = new StreamContent(dto.WideIcon.OpenReadStream());
+                wideIconContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(dto.WideIcon.ContentType);
+                formData.Add(wideIconContent, "WideIcon", dto.WideIcon.FileName);
+            }
+            
+            var response = await _httpClient.PostAsync($"api/content/pages/{pageId}/upload-icons", formData);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Ошибка загрузки иконок: {response.StatusCode}, {errorContent}");
+            }
+            
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при загрузке иконок: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Удаляет конкретную иконку страницы
+    /// </summary>
+    public async Task<bool> DeleteIconAsync(Guid pageId, string iconType)
+    {
+        try
+        {
+            if (iconType != "quad" && iconType != "wide")
+            {
+                Console.WriteLine("Неверный тип иконки. Используйте 'quad' или 'wide'");
+                return false;
+            }
+            
+            var response = await _httpClient.DeleteAsync($"api/content/pages/{pageId}/icons/{iconType}");
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Ошибка удаления иконки: {response.StatusCode}, {errorContent}");
+            }
+            
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при удалении иконки: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Удаляет страницу
+    /// </summary>
+    public async Task<bool> DeletePageAsync(Guid pageId)
+    {
+        try
+        {
+            var response = await _httpClient.DeleteAsync($"api/content/pages/{pageId}");
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Ошибка удаления страницы: {response.StatusCode}, {errorContent}");
+            }
+            
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при удалении страницы: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Получает URL файла для отображения иконки
+    /// </summary>
+    public string GetFileUrl(Guid fileId)
+    {
+        return $"{_httpClient.BaseAddress?.ToString().TrimEnd('/')}/api/file/{fileId}";
+    }
+
+    /// <summary>
+    /// Получает информацию о файле без загрузки самого файла
+    /// </summary>
+    public async Task<FileInfoDto?> GetFileInfoAsync(Guid fileId)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync($"api/file/{fileId}/info");
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                using var document = JsonDocument.Parse(json);
+                var root = document.RootElement;
+                
+                return new FileInfoDto
+                {
+                    Id = root.GetProperty("id").GetGuid(),
+                    Type = root.TryGetProperty("type", out var typeProperty) ? typeProperty.GetString() : null,
+                    Size = root.GetProperty("size").GetInt64(),
+                    Url = GetFileUrl(fileId)
+                };
+            }
+            
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при получении информации о файле: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Загружает файл и возвращает его как Stream
+    /// </summary>
+    public async Task<Stream?> DownloadFileAsync(Guid fileId)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync($"api/file/{fileId}");
+            
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadAsStreamAsync();
+            }
+            
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при загрузке файла: {ex.Message}");
+            return null;
+        }
+    }
+
+    #endregion
 }

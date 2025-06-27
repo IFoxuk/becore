@@ -5,12 +5,13 @@ using Amazon.S3.Model;
 using becore.api.Models;
 using becore.api.S3;
 using becore.api.Scheme;
+using becore.api.Services.Interfaces;
 using Microsoft.Extensions.Options;
 using File = becore.api.Scheme.System.File;
 
 namespace becore.api.Services;
 
-public class FileS3Service(IOptions<S3Options> options, IAmazonS3 s3Client, ApplicationContext context, ILogger<FileS3Service> logger)
+public class FileS3Service(IOptions<S3Options> options, IAmazonS3 s3Client, ApplicationContext context, ILogger<FileS3Service> logger) : IFileS3Service
 {
     private readonly S3Options _options = options.Value;
     private readonly IAmazonS3 _s3Client = s3Client;

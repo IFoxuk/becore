@@ -1,9 +1,12 @@
 @page "/debug-panel"
 @using becore.Services
 @using becore.Models
+@using becore.shared.DTOs
+@using becore.Adapters
 @using Blazorise
 @using System.Text.Json
 @inject AuthService AuthService
+@inject ContentApiService ContentService
 @inject IHttpClientFactory HttpClientFactory
 @inject ILogger<DebugPanel> Logger
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
@@ -27,6 +30,8 @@
                             <SelectItem TValue="string" Value="@("api/auth/debug-auth")">Debug Auth</SelectItem>
                             <SelectItem TValue="string" Value="@("api/auth/me")">Current User</SelectItem>
                             <SelectItem TValue="string" Value="@("api/content/pages")">List Pages</SelectItem>
+                            <SelectItem TValue="string" Value="@("api/content/tags")">List Tags</SelectItem>
+                            <SelectItem TValue="string" Value="@("api/content/pages/with-icons")">Create Page with Icons</SelectItem>
                         </Select>
                     </Field>
                     
@@ -94,6 +99,77 @@
         <Column>
             <Card>
                 <CardHeader>
+                    <CardTitle Size="4">
+                        <Icon Name="IconName.Image" />
+                        Create Page with Icons
+                    </CardTitle>
+                </CardHeader>
+                <CardBody>
+                    <Field>
+                        <FieldLabel>Page Name</FieldLabel>
+                        <TextEdit @bind-Text="iconPageName" Placeholder="Enter page name" />
+                    </Field>
+                    
+                    <Field>
+                        <FieldLabel>Page Description</FieldLabel>
+                        <MemoEdit @bind-Text="iconPageDescription" Rows="3" Placeholder="Enter page description" />
+                    </Field>
+                    
+                    <Field>
+                        <FieldLabel>Content</FieldLabel>
+                        <MemoEdit @bind-Text="iconPageContent" Rows="4" Placeholder="Enter page content" />
+                    </Field>
+                    
+                    <Field>
+                        <FieldLabel>Tags (comma separated)</FieldLabel>
+                        <TextEdit @bind-Text="iconPageTags" Placeholder="tag1, tag2, tag3" />
+                    </Field>
+                    
+                    <Row>
+                        <Column Size="ColumnSize.Is6">
+                            <Field>
+                                <FieldLabel>Quad Icon</FieldLabel>
+                                <FileEdit Filter="image/*" Changed="OnQuadIconChanged" />
+                                @if (!string.IsNullOrEmpty(quadIconPreview))
+                                {
+                                    <div class="mt-2">
+                                        <img src="@quadIconPreview" alt="Quad Icon Preview" style="max-width: 100px; max-height: 100px;" />
+                                    </div>
+                                }
+                            </Field>
+                        </Column>
+                        <Column Size="ColumnSize.Is6">
+                            <Field>
+                                <FieldLabel>Wide Icon</FieldLabel>
+                                <FileEdit Filter="image/*" Changed="OnWideIconChanged" />
+                                @if (!string.IsNullOrEmpty(wideIconPreview))
+                                {
+                                    <div class="mt-2">
+                                        <img src="@wideIconPreview" alt="Wide Icon Preview" style="max-width: 200px; max-height: 100px;" />
+                                    </div>
+                                }
+                            </Field>
+                        </Column>
+                    </Row>
+                    
+                    <Button Color="Color.Success" Clicked="CreatePageWithIcons" Loading="isLoading">
+                        <Icon Name="IconName.Add" />
+                        Create Page with Icons
+                    </Button>
+                    
+                    <Button Color="Color.Info" Clicked="TestContentApiMethods" Loading="isLoading" Class="ms-2">
+                        <Icon Name="IconName.Flask" />
+                        Test Content API Methods
+                    </Button>
+                </CardBody>
+            </Card>
+        </Column>
+    </Row>
+
+    <Row>
+        <Column>
+            <Card>
+                <CardHeader>
                     <CardTitle Size="5">
                         <Icon Name="IconName.Desktop" />
                         Results
@@ -143,6 +219,17 @@
     private string newPageName = string.Empty;
     private string newPageContent = string.Empty;
     private string newPageTags = string.Empty;
+    
+    // Icon page fields
+    private string iconPageName = string.Empty;
+    private string iconPageDescription = string.Empty;
+    private string iconPageContent = string.Empty;
+    private string iconPageTags = string.Empty;
+    private IFileEntry? quadIconFile;
+    private IFileEntry? wideIconFile;
+    private string? quadIconPreview;
+    private string? wideIconPreview;
+    
     private string result = string.Empty;
     private string errorMessage = string.Empty;
     private bool isLoading = false;
@@ -325,5 +412,179 @@
         result = string.Empty;
         errorMessage = string.Empty;
         StateHasChanged();
+    }
+
+    private async Task OnQuadIconChanged(FileChangedEventArgs e)
+    {
+        try
+        {
+            var file = e.Files.FirstOrDefault();
+            if (file != null)
+            {
+                quadIconFile = file;
+                
+                // Create preview
+                var buffer = new byte[file.Size];
+                using var stream = file.OpenReadStream();
+                await stream.ReadAsync(buffer);
+                var base64 = Convert.ToBase64String(buffer);
+                quadIconPreview = $"data:{file.Type ?? "image/png"};base64,{base64}";
+                
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading quad icon: {ex.Message}";
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnWideIconChanged(FileChangedEventArgs e)
+    {
+        try
+        {
+            var file = e.Files.FirstOrDefault();
+            if (file != null)
+            {
+                wideIconFile = file;
+                
+                // Create preview
+                var buffer = new byte[file.Size];
+                using var stream = file.OpenReadStream();
+                await stream.ReadAsync(buffer);
+                var base64 = Convert.ToBase64String(buffer);
+                wideIconPreview = $"data:{file.Type ?? "image/png"};base64,{base64}";
+                
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading wide icon: {ex.Message}";
+            StateHasChanged();
+        }
+    }
+
+    private async Task CreatePageWithIcons()
+    {
+        if (string.IsNullOrWhiteSpace(iconPageName))
+        {
+            errorMessage = "Page name is required";
+            return;
+        }
+        
+        isLoading = true;
+        errorMessage = string.Empty;
+        result = string.Empty;
+        StateHasChanged();
+
+        try
+        {
+            var dto = new CreatePageWithIconsDto
+            {
+                userId = AuthService.CurrentUser.Id,
+                Name = iconPageName.Trim(),
+                Description = iconPageDescription?.Trim(),
+                Content = iconPageContent?.Trim(),
+                Tags = iconPageTags?.Trim(),
+                QuadIcon = quadIconFile != null ? new FileEntryAdapter(quadIconFile) : null,
+                WideIcon = wideIconFile != null ? new FileEntryAdapter(wideIconFile) : null
+            };
+
+            var createdPage = await ContentService.CreatePageWithIconsAsync(dto);
+            
+            if (createdPage != null)
+            {
+                result = $"✅ Page '{iconPageName}' created successfully with icons!\n\n";
+                result += $"Page ID: {createdPage.Id}\n";
+                result += $"Title: {createdPage.Title}\n";
+                result += $"Description: {createdPage.Description}\n";
+                result += $"Image URL: {createdPage.ImageUrl}\n";
+                result += $"Tags: {string.Join(", ", createdPage.Tags)}\n";
+                result += $"Created At: {createdPage.CreatedAt}\n";
+                
+                // Clear form
+                iconPageName = string.Empty;
+                iconPageDescription = string.Empty;
+                iconPageContent = string.Empty;
+                iconPageTags = string.Empty;
+                quadIconFile = null;
+                wideIconFile = null;
+                quadIconPreview = null;
+                wideIconPreview = null;
+            }
+            else
+            {
+                errorMessage = "Failed to create page with icons. Check console for details.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Exception: {ex.Message}";
+            Logger.LogError(ex, "Error creating page with icons {PageName}", iconPageName);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task TestContentApiMethods()
+    {
+        isLoading = true;
+        errorMessage = string.Empty;
+        result = string.Empty;
+        StateHasChanged();
+
+        try
+        {
+            result = "🧪 Testing ContentApiService methods...\n\n";
+            
+            // Test getting all tags
+            result += "1. Testing GetAllTagsAsync():\n";
+            var tags = await ContentService.GetAllTagsAsync();
+            result += $"   Found {tags.Count()} tags: {string.Join(", ", tags)}\n\n";
+            
+            // Test searching pages
+            result += "2. Testing SearchPagesAsync():\n";
+            var pages = await ContentService.SearchPagesAsync();
+            result += $"   Found {pages.Count()} pages\n";
+            foreach (var page in pages.Take(3))
+            {
+                result += $"   - {page.Title} (ID: {page.Id})\n";
+            }
+            result += "\n";
+            
+            // Test search with query
+            result += "3. Testing SearchContentAsync() with pagination:\n";
+            var searchResult = await ContentService.SearchContentAsync("", 1, 5);
+            if (searchResult != null)
+            {
+                result += $"   Total: {searchResult.TotalCount}, Pages: {searchResult.TotalPages}\n";
+                result += $"   Current page: {searchResult.CurrentPage}, Page size: {searchResult.PageSize}\n";
+                result += $"   Items on this page: {searchResult.Items.Count}\n";
+            }
+            result += "\n";
+            
+            // Test file URL generation
+            result += "4. Testing GetFileUrl():\n";
+            var sampleFileId = Guid.NewGuid();
+            var fileUrl = ContentService.GetFileUrl(sampleFileId);
+            result += $"   Sample file URL: {fileUrl}\n\n";
+            
+            result += "✅ All ContentApiService methods tested successfully!";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Exception during testing: {ex.Message}";
+            Logger.LogError(ex, "Error testing ContentApiService methods");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
     }
 }

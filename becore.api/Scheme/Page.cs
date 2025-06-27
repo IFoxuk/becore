@@ -11,8 +11,8 @@ public class Page : DbEntity
     [Required] [MaxLength(32)] public required string Name { get; set; }
     [MaxLength(256)] public string? Description { get; set; }
     [MaxLength(2048)] public string? Content { get; set; }
-    public string? QuadIcon { get; set; }
-    public string? WideIcon { get; set; }
+    public Guid? QuadIcon { get; set; }
+    public Guid? WideIcon { get; set; }
     [NotMapped] public List<Pack> Packs { get; set; } = [];
     
     // Навигационные свойства для тегов
@@ -47,7 +47,7 @@ public class Page : DbEntity
             Author = "Unknown", // TODO: добавить поле Author в модель Page
             Description = page.Description ?? string.Empty,
             Content = page.Content ?? string.Empty,
-            ImageUrl = page.QuadIcon ?? "/images/default-page.svg",
+            ImageUrl = page.QuadIcon?.ToString() ?? "/images/default-page.svg",
             Tags = page.Tags,
             CreatedAt = DateTime.Now, // TODO: добавить поле CreatedAt в модель Page
             ViewCount = 0, // TODO: добавить поля статистики в модель Page

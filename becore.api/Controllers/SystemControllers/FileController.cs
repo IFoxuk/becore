@@ -1,6 +1,7 @@
-﻿using becore.api.Models;
+using becore.api.Models;
 using becore.api.Scheme;
 using becore.api.Services;
+using becore.api.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using File = becore.api.Scheme.System.File;
@@ -11,10 +12,10 @@ namespace becore.api.Controllers.SystemControllers;
 [Route("api/file")]
 public class FileController : ControllerBase
 {
-    private readonly FileS3Service _fileService;
+    private readonly IFileS3Service _fileService;
     private readonly UserManager<ApplicationUser> _user;
 
-    public FileController(FileS3Service fileService, UserManager<ApplicationUser> user)
+    public FileController(IFileS3Service fileService, UserManager<ApplicationUser> user)
     {
         _fileService = fileService;
         _user = user;

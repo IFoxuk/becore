@@ -1,9 +1,16 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Security.Claims;
 using becore.api.Scheme;
 using becore.shared.DTOs;
+using becore.api.Services;
+using becore.api.Services.Interfaces;
+using becore.api.Models;
+using File = becore.api.Scheme.System.File;
 
 namespace becore.api.Controllers.ContentController
 {
@@ -12,10 +19,13 @@ namespace becore.api.Controllers.ContentController
     public class ContentController : ControllerBase
     {
         private readonly ContentService _contentService;
+        private readonly IFileS3Service _fileS3Service;
+        private readonly UserManager<ApplicationUser> _user;
 
-        public ContentController(ContentService contentService)
+        public ContentController(ContentService contentService, IFileS3Service fileS3Service)
         {
             _contentService = contentService;
+            _fileS3Service = fileS3Service;
         }
 
         [HttpGet("pages")]
@@ -54,6 +64,62 @@ namespace becore.api.Controllers.ContentController
             return CreatedAtAction(nameof(GetPage), new { id = createdPage.Id }, createdPageDto);
         }
 
+        [HttpPost("pages/with-icons")]
+        public async Task<ActionResult<PageDto>> CreatePageWithIcons([FromForm] CreatePageWithIconsDto dto)
+        {
+            // Parse tags from comma-separated string
+            var tagList = dto.GetTagsList();
+
+            var createPageDto = new CreatePageDto
+            {
+                Name = dto.Name,
+                Description = dto.Description,
+                Tags = tagList
+            };
+
+            // Create page first
+            Page page = createPageDto;
+            var createdPage = await _contentService.CreatePageAsync(page);
+
+            // Upload icons if provided
+            if (dto.QuadIcon != null)
+            {
+                var quadFileModel = new FileModel
+                {
+                    Entity = new File { Type = dto.QuadIcon.ContentType, User = await _user.FindByIdAsync(dto.userId.ToString()) },
+                    Data = dto.QuadIcon.OpenReadStream()
+                };
+                var uploadedQuadIcon = await _fileS3Service.CreateAsync(quadFileModel);
+                if (uploadedQuadIcon != null)
+                {
+                    createdPage.QuadIcon = uploadedQuadIcon.Entity.Id;
+                }
+            }
+
+            if (dto.WideIcon != null)
+            {
+                var wideFileModel = new FileModel
+                {
+                    Entity = new File { Type = dto.WideIcon.ContentType },
+                    Data = dto.WideIcon.OpenReadStream()
+                };
+                var uploadedWideIcon = await _fileS3Service.CreateAsync(wideFileModel);
+                if (uploadedWideIcon != null)
+                {
+                    createdPage.WideIcon = uploadedWideIcon.Entity.Id;
+                }
+            }
+
+            // Update page if icons were uploaded
+            if (createdPage.QuadIcon != null || createdPage.WideIcon != null)
+            {
+                await _contentService.UpdatePageAsync(createdPage.Id, createdPage);
+            }
+
+            PageDto createdPageDto = createdPage;
+            return CreatedAtAction(nameof(GetPage), new { id = createdPage.Id }, createdPageDto);
+        }
+
         [HttpPut("pages/{id}")]
         public async Task<IActionResult> UpdatePage(Guid id, UpdatePageDto updatePageDto)
         {
@@ -66,13 +132,169 @@ namespace becore.api.Controllers.ContentController
             return NoContent();
         }
 
+        [HttpPut("pages/{id}/with-icons")]
+        public async Task<IActionResult> UpdatePageWithIcons(Guid id, [FromForm] UpdatePageWithIconsDto dto)
+        {
+            var existingPage = await _contentService.GetPageByIdAsync(id);
+            if (existingPage == null)
+                return NotFound();
+
+            // Parse tags from comma-separated string
+            var tagList = dto.GetTagsList();
+
+            // Update basic properties
+            existingPage.Name = dto.Name;
+            existingPage.Description = dto.Description;
+            existingPage.Content = dto.Content;
+            existingPage.Tags = tagList;
+
+            // Handle QuadIcon replacement
+            if (dto.ReplaceQuadIcon)
+            {
+                // Delete old icon if exists
+                if (existingPage.QuadIcon.HasValue)
+                {
+                    await _fileS3Service.DeleteAsync(existingPage.QuadIcon.Value);
+                    existingPage.QuadIcon = null;
+                }
+
+                // Upload new icon if provided
+                if (dto.QuadIcon != null)
+                {
+                    var quadFileModel = new FileModel
+                    {
+                        Entity = new File { Type = dto.QuadIcon.ContentType },
+                        Data = dto.QuadIcon.OpenReadStream()
+                    };
+                    var uploadedQuadIcon = await _fileS3Service.CreateAsync(quadFileModel);
+                    if (uploadedQuadIcon != null)
+                    {
+                        existingPage.QuadIcon = uploadedQuadIcon.Entity.Id;
+                    }
+                }
+            }
+
+            // Handle WideIcon replacement
+            if (dto.ReplaceWideIcon)
+            {
+                // Delete old icon if exists
+                if (existingPage.WideIcon.HasValue)
+                {
+                    await _fileS3Service.DeleteAsync(existingPage.WideIcon.Value);
+                    existingPage.WideIcon = null;
+                }
+
+                // Upload new icon if provided
+                if (dto.WideIcon != null)
+                {
+                    var wideFileModel = new FileModel
+                    {
+                        Entity = new File { Type = dto.WideIcon.ContentType },
+                        Data = dto.WideIcon.OpenReadStream()
+                    };
+                    var uploadedWideIcon = await _fileS3Service.CreateAsync(wideFileModel);
+                    if (uploadedWideIcon != null)
+                    {
+                        existingPage.WideIcon = uploadedWideIcon.Entity.Id;
+                    }
+                }
+            }
+
+            await _contentService.UpdatePageAsync(id, existingPage);
+            return NoContent();
+        }
+
         [HttpDelete("pages/{id}")]
         public async Task<IActionResult> DeletePage(Guid id)
         {
+            var page = await _contentService.GetPageByIdAsync(id);
+            if (page == null)
+                return NotFound();
+
+            // Delete associated icons before deleting the page
+            if (page.QuadIcon.HasValue)
+            {
+                await _fileS3Service.DeleteAsync(page.QuadIcon.Value);
+            }
+            if (page.WideIcon.HasValue)
+            {
+                await _fileS3Service.DeleteAsync(page.WideIcon.Value);
+            }
+
             var success = await _contentService.DeletePageAsync(id);
             if (!success)
                 return NotFound();
 
+            return NoContent();
+        }
+
+        [HttpDelete("pages/{id}/icons/{iconType}")]
+        public async Task<IActionResult> DeleteIcon(Guid id, string iconType)
+        {
+            var page = await _contentService.GetPageByIdAsync(id);
+            if (page == null) return NotFound();
+
+            switch (iconType.ToLower())
+            {
+                case "quad":
+                    if (page.QuadIcon.HasValue)
+                    {
+                        await _fileS3Service.DeleteAsync(page.QuadIcon.Value);
+                        page.QuadIcon = null;
+                        await _contentService.UpdatePageAsync(id, page);
+                    }
+                    break;
+                case "wide":
+                    if (page.WideIcon.HasValue)
+                    {
+                        await _fileS3Service.DeleteAsync(page.WideIcon.Value);
+                        page.WideIcon = null;
+                        await _contentService.UpdatePageAsync(id, page);
+                    }
+                    break;
+                default:
+                    return BadRequest("Invalid icon type. Use 'quad' or 'wide'.");
+            }
+
+            return NoContent();
+        }
+
+        [HttpPost("pages/{id}/upload-icons")]
+        public async Task<IActionResult> UploadIcons(Guid id, [FromForm] UploadIconsDto dto)
+        {
+            var page = await _contentService.GetPageByIdAsync(id);
+            if (page == null) return NotFound();
+
+            if (!dto.HasFilesToUpload)
+                return BadRequest("No files provided for upload.");
+
+            // Upload QuadIcon
+            if (dto.QuadIcon != null)
+            {
+                var quadFileModel = new FileModel
+                {
+                    Entity = new File { Type = dto.QuadIcon.ContentType },
+                    Data = dto.QuadIcon.OpenReadStream()
+                };
+                var uploadedQuadIcon = await _fileS3Service.CreateAsync(quadFileModel);
+                if (uploadedQuadIcon == null) return StatusCode(StatusCodes.Status500InternalServerError, "Failed to upload QuadIcon");
+                page.QuadIcon = uploadedQuadIcon.Entity.Id;
+            }
+
+            // Upload WideIcon
+            if (dto.WideIcon != null)
+            {
+                var wideFileModel = new FileModel
+                {
+                    Entity = new File { Type = dto.WideIcon.ContentType },
+                    Data = dto.WideIcon.OpenReadStream()
+                };
+                var uploadedWideIcon = await _fileS3Service.CreateAsync(wideFileModel);
+                if (uploadedWideIcon == null) return StatusCode(StatusCodes.Status500InternalServerError, "Failed to upload WideIcon");
+                page.WideIcon = uploadedWideIcon.Entity.Id;
+            }
+
+            await _contentService.UpdatePageAsync(id, page);
             return NoContent();
         }
 
@@ -82,5 +304,6 @@ namespace becore.api.Controllers.ContentController
             var tags = await _contentService.GetAllTagsAsync();
             return Ok(tags);
         }
+
     }
 }
