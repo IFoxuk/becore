@@ -13,7 +13,9 @@ public partial class PageDto
     public string Author { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
-    public string ImageUrl { get; set; } = string.Empty;
+    public Guid ImageId { get; set; } = Guid.Empty;
+    public Guid QuadImageId { get; set; } = Guid.Empty;
+    public Guid File { get; set; } = Guid.Empty;
     public List<string> Tags { get; set; } = new();
     public DateTime CreatedAt { get; set; }
     public int ViewCount { get; set; }
@@ -26,18 +28,18 @@ public partial class PageDto
 public partial class ApiPageDto
 {
     public Guid Id { get; set; }
-    
+
     [Required]
     [MaxLength(32)]
     public required string Name { get; set; }
-    
+
     [MaxLength(256)]
     public string? Description { get; set; }
-    
+
     public Guid? QuadIcon { get; set; }
-    
+
     public Guid? WideIcon { get; set; }
-    
+
     public List<string> Tags { get; set; } = new List<string>();
 }
 
@@ -49,14 +51,16 @@ public class CreatePageDto
     [Required]
     [MaxLength(32)]
     public required string Name { get; set; }
-    
+
     [MaxLength(256)]
     public string? Description { get; set; }
-    
+
     public Guid? QuadIcon { get; set; }
-    
+
     public Guid? WideIcon { get; set; }
-    
+
+    public IFormFile? File { get; set; }
+
     public List<string> Tags { get; set; } = new List<string>();
 }
 
@@ -68,14 +72,14 @@ public class UpdatePageDto
     [Required]
     [MaxLength(32)]
     public required string Name { get; set; }
-    
+
     [MaxLength(256)]
     public string? Description { get; set; }
-    
+
     public Guid? QuadIcon { get; set; }
-    
+
     public Guid? WideIcon { get; set; }
-    
+
     public List<string> Tags { get; set; } = new List<string>();
 }
 
@@ -114,41 +118,43 @@ public class CreatePageWithIconsDto
     [Required]
     [MaxLength(32)]
     public required string Name { get; set; }
-    
+
     /// <summary>
     /// Описание страницы
     /// </summary>
     [MaxLength(256)]
     public string? Description { get; set; }
-    
+
     /// <summary>
     /// Содержимое страницы
     /// </summary>
     [MaxLength(2048)]
     public string? Content { get; set; }
-    
+
     /// <summary>
     /// Теги в виде строки, разделенной запятыми
     /// </summary>
     public string? Tags { get; set; }
-    
+
     /// <summary>
     /// Квадратная иконка
     /// </summary>
     public IFormFile? QuadIcon { get; set; }
-    
+
     /// <summary>
     /// Широкая иконка
     /// </summary>
     public IFormFile? WideIcon { get; set; }
-    
+
+    public IFormFile? File { get; set; }
+
     /// <summary>
     /// Преобразует строку тегов в список
     /// </summary>
     public List<string> GetTagsList()
     {
-        return string.IsNullOrEmpty(Tags) 
-            ? new List<string>() 
+        return string.IsNullOrEmpty(Tags)
+            ? new List<string>()
             : Tags.Split(',', StringSplitOptions.RemoveEmptyEntries)
                   .Select(t => t.Trim())
                   .Where(t => !string.IsNullOrEmpty(t))
@@ -167,51 +173,51 @@ public class UpdatePageWithIconsDto
     [Required]
     [MaxLength(32)]
     public required string Name { get; set; }
-    
+
     /// <summary>
     /// Описание страницы
     /// </summary>
     [MaxLength(256)]
     public string? Description { get; set; }
-    
+
     /// <summary>
     /// Содержимое страницы
     /// </summary>
     [MaxLength(2048)]
     public string? Content { get; set; }
-    
+
     /// <summary>
     /// Теги в виде строки, разделенной запятыми
     /// </summary>
     public string? Tags { get; set; }
-    
+
     /// <summary>
     /// Квадратная иконка
     /// </summary>
     public IFormFile? QuadIcon { get; set; }
-    
+
     /// <summary>
     /// Широкая иконка
     /// </summary>
     public IFormFile? WideIcon { get; set; }
-    
+
     /// <summary>
     /// Флаг замены квадратной иконки
     /// </summary>
     public bool ReplaceQuadIcon { get; set; } = false;
-    
+
     /// <summary>
     /// Флаг замены широкой иконки
     /// </summary>
     public bool ReplaceWideIcon { get; set; } = false;
-    
+
     /// <summary>
     /// Преобразует строку тегов в список
     /// </summary>
     public List<string> GetTagsList()
     {
-        return string.IsNullOrEmpty(Tags) 
-            ? new List<string>() 
+        return string.IsNullOrEmpty(Tags)
+            ? new List<string>()
             : Tags.Split(',', StringSplitOptions.RemoveEmptyEntries)
                   .Select(t => t.Trim())
                   .Where(t => !string.IsNullOrEmpty(t))
@@ -228,12 +234,12 @@ public class UploadIconsDto
     /// Квадратная иконка
     /// </summary>
     public IFormFile? QuadIcon { get; set; }
-    
+
     /// <summary>
     /// Широкая иконка
     /// </summary>
     public IFormFile? WideIcon { get; set; }
-    
+
     /// <summary>
     /// Проверяет, есть ли файлы для загрузки
     /// </summary>

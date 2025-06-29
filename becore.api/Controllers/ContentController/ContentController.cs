@@ -22,10 +22,11 @@ namespace becore.api.Controllers.ContentController
         private readonly IFileS3Service _fileS3Service;
         private readonly UserManager<ApplicationUser> _user;
 
-        public ContentController(ContentService contentService, IFileS3Service fileS3Service)
+        public ContentController(ContentService contentService, IFileS3Service fileS3Service, UserManager<ApplicationUser> user)
         {
             _contentService = contentService;
             _fileS3Service = fileS3Service;
+            _user = user;
         }
 
         [HttpGet("pages")]
@@ -82,12 +83,24 @@ namespace becore.api.Controllers.ContentController
         public async Task<ActionResult<PageDto>> CreatePage(CreatePageDto createPageDto)
         {
             Page page = createPageDto; // Implicit conversion
+
+            var file = await _fileS3Service.CreateAsync(new FileModel
+            {
+                Entity = new File
+                {
+                    Type = createPageDto.File.ContentType,
+                    User = await _user.GetUserAsync(User)
+                },
+                Data = createPageDto.File.OpenReadStream()
+            });
+
             var createdPage = await _contentService.CreatePageAsync(page);
             PageDto createdPageDto = createdPage; // Implicit conversion
             return CreatedAtAction(nameof(GetPage), new { id = createdPage.Id }, createdPageDto);
         }
 
         [HttpPost("pages/with-icons")]
+        [Consumes("multipart/form-data")]
         public async Task<ActionResult<PageDto>> CreatePageWithIcons([FromForm] CreatePageWithIconsDto dto)
         {
             // Parse tags from comma-separated string
@@ -133,8 +146,22 @@ namespace becore.api.Controllers.ContentController
                 }
             }
 
+            if (dto.File != null)
+            {
+                var FileModel = new FileModel
+                {
+                    Entity = new File { Type = dto.File.ContentType },
+                    Data = dto.File.OpenReadStream()
+                };
+                var uploadedFile = await _fileS3Service.CreateAsync(FileModel);
+                if (uploadedFile != null)
+                {
+                    createdPage.File = uploadedFile.Entity.Id;
+                }
+            }
+
             // Update page if icons were uploaded
-            if (createdPage.QuadIcon != null || createdPage.WideIcon != null)
+            if (createdPage.QuadIcon != null || createdPage.WideIcon != null || createdPage.File != null)
             {
                 await _contentService.UpdatePageAsync(createdPage.Id, createdPage);
             }
