@@ -47,7 +47,8 @@ public class Page : DbEntity
             Author = "Unknown", // TODO: добавить поле Author в модель Page
             Description = page.Description ?? string.Empty,
             Content = page.Content ?? string.Empty,
-            ImageUrl = page.QuadIcon?.ToString() ?? "/images/default-page.svg",
+            ImageId = page.QuadIcon ?? Guid.Empty,
+            QuadImageId = page.WideIcon ?? Guid.Empty,
             Tags = page.Tags,
             CreatedAt = DateTime.Now, // TODO: добавить поле CreatedAt в модель Page
             ViewCount = 0, // TODO: добавить поля статистики в модель Page

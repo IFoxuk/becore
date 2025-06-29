@@ -13,7 +13,8 @@ public partial class PageDto
     public string Author { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
-    public string ImageUrl { get; set; } = string.Empty;
+    public Guid ImageId { get; set; } = Guid.Empty;
+    public Guid QuadImageId { get; set; } = Guid.Empty;
     public List<string> Tags { get; set; } = new();
     public DateTime CreatedAt { get; set; }
     public int ViewCount { get; set; }

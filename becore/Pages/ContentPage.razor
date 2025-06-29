@@ -44,7 +44,7 @@ else
             <Column Padding="Padding.Is4" ColumnSize="ColumnSize.Is10.Is1.WithOffset" Background="Background.Primary" Border="Border.Rounded" Shadow="Shadow.Default">
                 <Row>
                     <Column ColumnSize="ColumnSize.Is8" Padding="Padding.Is5">
-                        <Image Source="@pageData.ImageUrl" Border="Border.Rounded" Alt="@pageData.Title"></Image>
+                        <Image Source="@GetImageUrl()" Border="Border.Rounded" Alt="@pageData.Title"></Image>
                     </Column>
                     <Column ColumnSize="ColumnSize.Is4" Padding="Padding.Is2" Flex="Flex.JustifyContent.Center.Column">
                         <Div Background="Background.Secondary" Border="Border.Rounded" Padding="Padding.Is3" Height="Height.Is100" Width="Width.Is100">
@@ -174,5 +174,15 @@ else
         {
             isLoading = false;
         }
+    }
+
+    private string GetQuadImageUrl()
+    {
+        return $"https://s3.twcstorage.ru/6f380a87-mcbe/files/{pageData.QuadImageId}";
+    }
+
+    private string GetImageUrl()
+    {
+        return $"https://s3.twcstorage.ru/6f380a87-mcbe/files/{pageData.ImageId}";
     }
 }
