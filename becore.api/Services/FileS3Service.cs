@@ -20,16 +20,10 @@ public class FileS3Service(IOptions<S3Options> options, IAmazonS3 s3Client, Appl
 
     public async Task<FileModel?> CreateAsync(FileModel fileModel)
     {
-        if (fileModel?.Entity == null || fileModel.Data == null)
-        {
-            _logger.LogError("FileModel or its properties are null");
-            return null;
-        }
-
         try
         {
             // Read the stream into memory to avoid stream positioning issues
-            using var sourceStream = fileModel.Data;
+            await using var sourceStream = fileModel.Data;
             var memoryStream = new MemoryStream();
             
             await sourceStream.CopyToAsync(memoryStream);
@@ -53,7 +47,7 @@ public class FileS3Service(IOptions<S3Options> options, IAmazonS3 s3Client, Appl
             {
                 BucketName = _options.BucketName,
                 Key = GenerateS3Key(fileModel.Entity),
-                ContentType = fileModel.Entity.Type ?? "application/octet-stream",
+                ContentType = fileModel.Entity.Type == string.Empty ? "application/octet-stream" : fileModel.Entity.Type,
                 InputStream = memoryStream,
                 UseChunkEncoding = false,
                 DisablePayloadSigning = false
@@ -246,12 +240,6 @@ public class FileS3Service(IOptions<S3Options> options, IAmazonS3 s3Client, Appl
 
     public async Task<FileModel?> UpdateAsync(FileModel fileModel)
     {
-        if (fileModel?.Entity == null || fileModel.Data == null)
-        {
-            _logger.LogError("FileModel or its properties are null for update");
-            return null;
-        }
-
         if (fileModel.Entity.Id == Guid.Empty)
         {
             _logger.LogError("Invalid file ID provided for update: {FileId}", fileModel.Entity.Id);
@@ -269,7 +257,7 @@ public class FileS3Service(IOptions<S3Options> options, IAmazonS3 s3Client, Appl
             }
 
             // Read the stream into memory to avoid stream positioning issues
-            using var sourceStream = fileModel.Data;
+            await using var sourceStream = fileModel.Data;
             var memoryStream = new MemoryStream();
             
             await sourceStream.CopyToAsync(memoryStream);
@@ -298,7 +286,7 @@ public class FileS3Service(IOptions<S3Options> options, IAmazonS3 s3Client, Appl
             {
                 BucketName = _options.BucketName,
                 Key = GenerateS3Key(fileModel.Entity),
-                ContentType = fileModel.Entity.Type ?? "application/octet-stream",
+                ContentType = fileModel.Entity.Type == string.Empty ? "application/octet-stream" : fileModel.Entity.Type,
                 InputStream = memoryStream,
                 UseChunkEncoding = false,
                 DisablePayloadSigning = false
@@ -329,7 +317,7 @@ public class FileS3Service(IOptions<S3Options> options, IAmazonS3 s3Client, Appl
             _logger.LogError("Failed to upload updated file to S3. Status code: {StatusCode}", response.HttpStatusCode);
             
             // Dispose the memory stream since we're not returning it
-            memoryStream.Dispose();
+            await memoryStream.DisposeAsync();
             return null;
         }
         catch (AmazonS3Exception s3Ex)
