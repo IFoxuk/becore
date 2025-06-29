@@ -168,6 +168,14 @@ public class ContentApiService
         }
     }
 
+    public async Task<ContentResponse?> SearchContentAsync(ContentFilter filter)
+    {
+        var response = await _httpClient.PatchAsJsonAsync("api/content/content", filter);
+        if (!response.IsSuccessStatusCode)
+            return null;
+        return await response.Content.ReadFromJsonAsync<ContentResponse>();
+    }
+    
     #region Methods for working with pages and icons
 
     /// <summary>

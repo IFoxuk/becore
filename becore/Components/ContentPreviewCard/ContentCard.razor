@@ -1,0 +1,111 @@
+﻿@using becore.shared.DTOs
+
+<Card Class="content-card"
+      Width="Width.Is100"
+      Height="Height.Auto">
+
+    @* Автор над изображением *@
+    <CardHeader Padding="Padding.Is3">
+        <Small TextColor="TextColor.Muted" Style="font-size: 12px; font-weight: 500;">
+            by @(string.IsNullOrEmpty(GetAuthor()) ? "Unknown Author" : GetAuthor())
+        </Small>
+    </CardHeader>
+
+    <Link To="@($"/content/{Content.Id}")"
+          TextDecoration="TextDecoration.None">
+        <Div Position="Position.Relative"
+             Width="Width.Is100"
+             Height="Height.Px(200)"
+             Class="image-container">
+             
+            @if (!string.IsNullOrEmpty(Content.ImageUrl))
+            {
+            <CardImage Source="@Content.ImageUrl"
+                          Alt="@Content.Name"
+                          Class="card-image" />
+            }
+            else
+            {
+                <Div Class="image-placeholder"
+                     Width="Width.Is100"
+                     Height="Height.Is100">
+                    <Icon Name="IconName.Image" />
+                </Div>
+            }
+            
+            @* Overlay с затемнением и иконкой при hover *@
+            <Div Position="Position.Absolute"
+                 Width="Width.Is100"
+                 Height="Height.Is100"
+                 Style="top: 0; left: 0; background: rgba(0, 0, 0, 0.5);"
+                 Display="Display.Flex"
+                 Flex="Flex.AlignItems.Center.JustifyContent.Center"
+                 Class="card-overlay">
+                 
+                <Icon Name="IconName.Eye"
+                      TextColor="TextColor.White"
+                      TextSize="TextSize.ExtraLarge"
+                      Style="text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);" />
+            </Div>
+        </Div>
+    </Link>
+
+    <Div Class="card-body-custom">
+        @* Заголовок *@
+        <CardTitle Class="card-title"
+                   Margin="Margin.Is0"
+                   Title="@Content.Name">
+            @Content.Name
+        </CardTitle>
+        
+        @* Описание (всегда 4 строки) *@
+        <CardText Class="card-text"
+                 Margin="Margin.Is0">
+            @(string.IsNullOrEmpty(Content.Description) ? "Описание отсутствует..." : Content.Description)
+        </CardText>
+
+        @* Теги *@
+        <Div Class="tag-container">
+            @if (Content.Tags.Count > 0)
+            {
+                foreach (var tag in Content.Tags.Take(4))
+                {
+                    <Badge Class="tag">@tag.Name</Badge>
+                }
+                
+                if (Content.Tags.Count > 4)
+                {
+                    <Badge Class="tag tag-more">+@(Content.Tags.Count - 4)</Badge>
+                }
+            }
+            else
+            {
+                <Badge Class="tag">Без тегов</Badge>
+            }
+        </Div>
+
+        @* ID страницы (для отладки) *@
+        @if (ShowDebugInfo)
+        {
+            <Small TextColor="TextColor.Muted"
+                   Style="font-size: 10px; opacity: 0.7; margin-top: 8px;">
+                ID: @Content.Id.ToString()[..8]...
+            </Small>
+        }
+    </Div>
+</Card>
+
+@code {
+    [Parameter] public ContentDto Content { get; set; } = new()
+    {
+        Name = "Без названия",
+        AuthorName = "BECore",
+        ImageUrl = "img/jpg/world.jpg"
+    };
+    [Parameter] public bool ShowDebugInfo { get; set; } = false;
+    
+    private string GetAuthor()
+    {
+        return string.IsNullOrEmpty(Content.AuthorName) ? "BeCore Community" : Content.AuthorName;
+    }
+}

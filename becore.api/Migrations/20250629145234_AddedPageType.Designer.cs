@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using becore.api.Scheme;
@@ -11,9 +12,11 @@ using becore.api.Scheme;
 namespace becore.api.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20250629145234_AddedPageType")]
+    partial class AddedPageType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -363,9 +366,6 @@ namespace becore.api.Migrations
                     b.Property<string>("Description")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
-
-                    b.Property<Guid?>("File")
-                        .HasColumnType("uuid");
 
                     b.Property<string>("Name")
                         .IsRequired()

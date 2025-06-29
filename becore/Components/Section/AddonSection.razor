@@ -1,0 +1,24 @@
+﻿@page "/addon"
+@using becore.shared.DTOs
+@inject ContentApiService ContentService
+
+<SectionFrame Title="Дополнения" ContentCount="_totalCountItems" ContentProvider="LoadItems"/>
+
+@code
+{
+    private uint _totalCountItems;
+
+    private async ValueTask<ItemsProviderResult<ContentDto>> LoadItems(ItemsProviderRequest request)
+    {
+        var response = await ContentService.SearchContentAsync(new()
+        {
+            ContentType = 0,
+            Count = (ushort)request.Count,
+            Position = (ushort)request.StartIndex
+        });
+        
+        _totalCountItems = (uint)response.TotalCount;
+        
+        return new ItemsProviderResult<ContentDto>(response.Content, response.TotalCount) ;
+    }
+}

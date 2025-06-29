@@ -27,7 +27,9 @@ public class FileController : ControllerBase
         var file = await _fileService.GetAsync(id);
         if (file == null) return NotFound();
         
-        return File(file.Data, file.Entity.Type ?? "application/octet-stream", $"file_{id}");
+        return File(file.Data, 
+            file.Entity.Type == string.Empty ? "application/octet-stream" : file.Entity.Type, 
+            $"file_{id}");
     }
     
     [HttpGet("{id:guid}/info")]
@@ -79,7 +81,7 @@ public class FileController : ControllerBase
         return deleteResult ? Ok() : BadRequest();
     }
 
-    [HttpPut()]
+    [HttpPut]
     public async Task<IActionResult> UpdateFile(File file, IFormFile data)
     {
         if (await _fileService.GetAsync(file.Id) == null)

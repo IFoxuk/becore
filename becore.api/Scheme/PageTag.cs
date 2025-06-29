@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using becore.shared.DTOs;
 
 namespace becore.api.Scheme;
 
@@ -19,4 +20,10 @@ public class PageTag
     // Навигационные свойства
     [ForeignKey("PageId")]
     public virtual Page Page { get; set; } = null!;
+
+    public static implicit operator TagDto(PageTag tag) => new()
+    {
+        Id = tag.Id,
+        Name = tag.TagName
+    };
 }

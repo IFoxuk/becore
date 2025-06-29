@@ -1,10 +1,42 @@
-﻿@page "/frame"
+﻿@using becore.shared.DTOs
+@using becore.Components.ContentPreviewCard
 <Jumbotron Background="Background.Dark" Margin="Margin.Is5.OnX.OnWidescreen.Is5.OnX.OnDesktop.Is5.OnX.OnFullHD.Is5.OnX.OnQuadHD.Is0.OnY.OnMobile.Is0.OnY.OnTablet">
-    <JumbotronTitle Margin="@Margin.Is("is-mx-widescreen-5 is-mx-desktop-5")">_Title_ | _packCount_</JumbotronTitle>
-    <JumbotronSubtitle>_Subtitle_</JumbotronSubtitle>
-    _Content_
+    <JumbotronTitle Margin="@Margin.Is("is-mx-widescreen-5 is-mx-desktop-5")">@Title | @ContentCount</JumbotronTitle>
+    <JumbotronSubtitle>@Subtitle</JumbotronSubtitle>
+    <Container Fluid>
+        <Layout Sider>
+            <LayoutSider Class="is-hidden-touch" Background="Background.Danger">
+                <LayoutSiderContent>
+                    
+                </LayoutSiderContent>
+            </LayoutSider>
+            <Layout>
+                <LayoutContent Class="main-content-grid">
+                    
+                        <Virtualize ItemsProvider="ContentProvider" ItemSize="335" MaxItemCount="5">
+                            <div class="main-content-item">
+                                <ContentCard Content="context"/>
+                            </div>
+                        </Virtualize>
+                    
+                </LayoutContent>
+            </Layout>
+        </Layout>
+    </Container>
 </Jumbotron>
 
 @code {
+    [Parameter]
+    [EditorRequired]
+    public required string Title { get; set; }
+    [Parameter]
+    public uint ContentCount { get; set; }
+    [Parameter]
+    public string? Subtitle { get; set; }
+    [Parameter] 
+    public ItemsProviderDelegate<ContentDto>? ContentProvider { get; set; }
+
+    
+    // public IEnumerable<ContentDto> ContentList { get; set; } = [];
     
 }
