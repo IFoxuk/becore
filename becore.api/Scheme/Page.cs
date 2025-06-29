@@ -8,19 +8,21 @@ namespace becore.api.Scheme;
 [Table("Page")]
 public class Page : DbEntity
 {
-    [Required] [MaxLength(32)] public required string Name { get; set; }
+    [Required][MaxLength(32)] public required string Name { get; set; }
     [MaxLength(256)] public string? Description { get; set; }
     [MaxLength(2048)] public string? Content { get; set; }
     public Guid? QuadIcon { get; set; }
     public Guid? WideIcon { get; set; }
+
+    public Guid? File { get; set; }
     [NotMapped] public List<Pack> Packs { get; set; } = [];
-    
+
     // Навигационные свойства для тегов
     public virtual ICollection<PageTag> PageTags { get; set; } = new List<PageTag>();
-    
+
     // Удобное свойство для работы с тегами как со строками
     [NotMapped]
-    public List<string> Tags 
+    public List<string> Tags
     {
         get => PageTags.Select(pt => pt.TagName).ToList();
         set
@@ -32,9 +34,9 @@ public class Page : DbEntity
             }
         }
     }
-    
+
     // Implicit операторы для работы с shared DTO
-    
+
     /// <summary>
     /// Конвертация Page в PageDto для клиента
     /// </summary>
@@ -49,13 +51,14 @@ public class Page : DbEntity
             Content = page.Content ?? string.Empty,
             ImageId = page.QuadIcon ?? Guid.Empty,
             QuadImageId = page.WideIcon ?? Guid.Empty,
+            File = page.File ?? Guid.Empty,
             Tags = page.Tags,
             CreatedAt = DateTime.Now, // TODO: добавить поле CreatedAt в модель Page
             ViewCount = 0, // TODO: добавить поля статистики в модель Page
             DownloadCount = 0
         };
     }
-    
+
     /// <summary>
     /// Конвертация CreatePageDto в Page
     /// </summary>
@@ -69,16 +72,16 @@ public class Page : DbEntity
             QuadIcon = createDto.QuadIcon,
             WideIcon = createDto.WideIcon
         };
-        
+
         // Устанавливаем теги после создания объекта, чтобы PageId был корректным
         foreach (var tag in createDto.Tags)
         {
             page.PageTags.Add(new PageTag { TagName = tag, PageId = page.Id });
         }
-        
+
         return page;
     }
-    
+
     /// <summary>
     /// Обновляет текущую Page из UpdatePageDto
     /// </summary>

@@ -208,7 +208,14 @@ public class ContentApiService
                 wideIconContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(dto.WideIcon.ContentType);
                 formData.Add(wideIconContent, "WideIcon", dto.WideIcon.FileName);
             }
-            
+
+            if (dto.File != null)
+            {
+                var FileIconContent = new StreamContent(dto.File.OpenReadStream());
+                FileIconContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(dto.File.ContentType);
+                formData.Add(FileIconContent, "File", dto.File.FileName);
+            }
+
             var response = await _httpClient.PostAsync("api/content/pages/with-icons", formData);
             
             if (response.IsSuccessStatusCode)

@@ -49,7 +49,7 @@ else
                     <Column ColumnSize="ColumnSize.Is4" Padding="Padding.Is2" Flex="Flex.JustifyContent.Center.Column">
                         <Div Background="Background.Secondary" Border="Border.Rounded" Padding="Padding.Is3" Height="Height.Is100" Width="Width.Is100">
                             <Text TextSize="TextSize.Heading2" Margin="Margin.Is2.FromBottom">@pageData.Title</Text>
-                            
+
                             <!-- Author -->
                             <Div Margin="Margin.Is2.FromBottom">
                                 <Text TextSize="TextSize.Small" TextColor="TextColor.Muted">
@@ -57,18 +57,18 @@ else
                                     by @pageData.Author
                                 </Text>
                             </Div>
-                            
+
                             <!-- Stats -->
                             <Div Margin="Margin.Is2.FromBottom">
                                 <Text TextSize="TextSize.Small" TextColor="TextColor.Muted">
                                     <Icon Name="IconName.Eye" /> @pageData.ViewCount просмотров
                                 </Text>
-                                <br/>
+                                <br />
                                 <Text TextSize="TextSize.Small" TextColor="TextColor.Muted">
                                     <Icon Name="IconName.Download" /> @pageData.DownloadCount загрузок
                                 </Text>
                             </Div>
-                            
+
                             <!-- Tags -->
                             @if (pageData.Tags.Any())
                             {
@@ -82,7 +82,7 @@ else
                                     </Div>
                                 </Div>
                             }
-                            
+
                             <!-- Description -->
                             <Div Flex="Flex.Column">
                                 <Text TextSize="TextSize.Small">@pageData.Description</Text>
@@ -92,14 +92,14 @@ else
                 </Row>
             </Column>
         </Row>
-        
+
         <!-- Download Section -->
         <Row Margin="Margin.Is3">
             <Column Padding="Padding.Is4" Background="Background.Primary" Border="Border.Rounded" Shadow="Shadow.Default" ColumnSize="ColumnSize.Is10.Is1.WithOffset">
                 <Row>
                     <Column ColumnSize="ColumnSize.Is12" Padding="Padding.Is2">
                         <Div Flex="Flex.JustifyContent.Center" Gap="Gap.Is2">
-                            <Button Color="Color.Success" Shadow="Shadow.Default" Size="Size.Large">
+                            <Button Color="Color.Success" Shadow="Shadow.Default" Size="Size.Large" onclick="@OnDownloadbtnClicked">
                                 <Icon Name="IconName.Download" />
                                 Скачать
                             </Button>
@@ -112,7 +112,7 @@ else
                 </Row>
             </Column>
         </Row>
-        
+
         <!-- Content Section (if exists) -->
         @if (!string.IsNullOrEmpty(contentData))
         {
@@ -133,7 +133,7 @@ else
                                 <Text TextSize="TextSize.Small" TextColor="TextColor.Muted">
                                     ID: @pageData.Id
                                 </Text>
-                                <br/>
+                                <br />
                                 <Text TextSize="TextSize.Small" TextColor="TextColor.Muted">
                                     Создано: @pageData.CreatedAt.ToString("dd.MM.yyyy")
                                 </Text>
@@ -146,11 +146,17 @@ else
     </Container>
 }
 
+@inject NavigationManager navigationManager;
 @code {
     [Parameter] public int Id { get; set; }
     private PageDto? pageData;
     private string contentData = string.Empty;
     private bool isLoading = true;
+
+    private string GetFileURL()
+    {
+        return "https://s3.twcstorage.ru/6f380a87-mcbe/files/" + pageData.File.ToString();
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -158,7 +164,7 @@ else
         {
             // Получаем страницу по int ID (hash code)
             pageData = await ContentService.GetPageByIdAsync(Id);
-            
+
             // Загружаем контент из поля Content
             if (pageData != null)
             {
@@ -184,5 +190,10 @@ else
     private string GetImageUrl()
     {
         return $"https://s3.twcstorage.ru/6f380a87-mcbe/files/{pageData.ImageId}";
+    }
+
+    private void OnDownloadbtnClicked()
+    {
+        navigationManager.NavigateTo(GetFileURL());
     }
 }

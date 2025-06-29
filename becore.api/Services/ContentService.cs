@@ -79,6 +79,7 @@ public class ContentService
         existingPage.Description = updatedPage.Description;
         existingPage.QuadIcon = updatedPage.QuadIcon;
         existingPage.WideIcon = updatedPage.WideIcon;
+        existingPage.File = updatedPage.File;
         
         // Обновляем теги
         // Удаляем старые теги

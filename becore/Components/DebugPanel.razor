@@ -34,7 +34,7 @@
                             <SelectItem TValue="string" Value="@("api/content/pages/with-icons")">Create Page with Icons</SelectItem>
                         </Select>
                     </Field>
-                    
+
                     <Field>
                         <FieldLabel>HTTP Method</FieldLabel>
                         <Select TValue="string" @bind-SelectedValue="httpMethod">
@@ -44,17 +44,17 @@
                             <SelectItem TValue="string" Value="@("DELETE")">DELETE</SelectItem>
                         </Select>
                     </Field>
-                    
+
                     <Field>
                         <FieldLabel>Request Body (JSON)</FieldLabel>
                         <MemoEdit @bind-Text="requestBody" Rows="4" Placeholder="Enter JSON body for POST/PUT requests" />
                     </Field>
-                    
+
                     <Button Color="Color.Primary" Clicked="CallApi" Loading="isLoading">
                         <Icon Name="IconName.Play" />
                         Call API
                     </Button>
-                    
+
                     <Button Color="Color.Secondary" Clicked="TestAuthentication" Loading="isLoading" Class="ms-2">
                         <Icon Name="IconName.User" />
                         Test Auth
@@ -75,17 +75,17 @@
                         <FieldLabel>Page Name</FieldLabel>
                         <TextEdit @bind-Text="newPageName" Placeholder="Enter page name" />
                     </Field>
-                    
+
                     <Field>
                         <FieldLabel>Page Description</FieldLabel>
                         <MemoEdit @bind-Text="newPageContent" Rows="4" Placeholder="Enter page description (optional)" />
                     </Field>
-                    
+
                     <Field>
                         <FieldLabel>Tags (comma separated)</FieldLabel>
                         <TextEdit @bind-Text="newPageTags" Placeholder="tag1, tag2, tag3" />
                     </Field>
-                    
+
                     <Button Color="Color.Success" Clicked="AddPage" Loading="isLoading">
                         <Icon Name="IconName.Add" />
                         Add New Page
@@ -109,22 +109,22 @@
                         <FieldLabel>Page Name</FieldLabel>
                         <TextEdit @bind-Text="iconPageName" Placeholder="Enter page name" />
                     </Field>
-                    
+
                     <Field>
                         <FieldLabel>Page Description</FieldLabel>
                         <MemoEdit @bind-Text="iconPageDescription" Rows="3" Placeholder="Enter page description" />
                     </Field>
-                    
+
                     <Field>
                         <FieldLabel>Content</FieldLabel>
                         <MemoEdit @bind-Text="iconPageContent" Rows="4" Placeholder="Enter page content" />
                     </Field>
-                    
+
                     <Field>
                         <FieldLabel>Tags (comma separated)</FieldLabel>
                         <TextEdit @bind-Text="iconPageTags" Placeholder="tag1, tag2, tag3" />
                     </Field>
-                    
+
                     <Row>
                         <Column Size="ColumnSize.Is6">
                             <Field>
@@ -150,13 +150,19 @@
                                 }
                             </Field>
                         </Column>
+                        <Column Size="ColumnSize.Is6">
+                            <Field>
+                                <FieldLabel>File</FieldLabel>
+                                <FileEdit Changed="OnFileChanged" />
+                            </Field>
+                        </Column>
                     </Row>
-                    
+
                     <Button Color="Color.Success" Clicked="CreatePageWithIcons" Loading="isLoading">
                         <Icon Name="IconName.Add" />
                         Create Page with Icons
                     </Button>
-                    
+
                     <Button Color="Color.Info" Clicked="TestContentApiMethods" Loading="isLoading" Class="ms-2">
                         <Icon Name="IconName.Flask" />
                         Test Content API Methods
@@ -198,7 +204,7 @@
                     {
                         <Paragraph TextColor="TextColor.Muted">No results yet. Execute an API call to see results here.</Paragraph>
                     }
-                    
+
                     @if (!string.IsNullOrEmpty(errorMessage))
                     {
                         <Alert Color="Color.Danger" Class="mt-3">
@@ -219,7 +225,7 @@
     private string newPageName = string.Empty;
     private string newPageContent = string.Empty;
     private string newPageTags = string.Empty;
-    
+
     // Icon page fields
     private string iconPageName = string.Empty;
     private string iconPageDescription = string.Empty;
@@ -227,9 +233,10 @@
     private string iconPageTags = string.Empty;
     private IFileEntry? quadIconFile;
     private IFileEntry? wideIconFile;
+    private IFileEntry? File;
     private string? quadIconPreview;
     private string? wideIconPreview;
-    
+
     private string result = string.Empty;
     private string errorMessage = string.Empty;
     private bool isLoading = false;
@@ -245,16 +252,16 @@
         {
             await AuthService.WaitForInitializationAsync();
             var token = await AuthService.GetTokenAsync();
-            
+
             var httpClient = HttpClientFactory.CreateClient("ApiClient");
-            
+
             if (!string.IsNullOrEmpty(token))
             {
                 httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             }
 
             HttpResponseMessage response;
-            
+
             switch (httpMethod.ToUpper())
             {
                 case "GET":
@@ -276,7 +283,7 @@
             }
 
             var responseContent = await response.Content.ReadAsStringAsync();
-            
+
             result = $"Status: {response.StatusCode} ({(int)response.StatusCode})\n";
             result += $"Headers:\n";
             foreach (var header in response.Headers)
@@ -284,7 +291,7 @@
                 result += $"  {header.Key}: {string.Join(", ", header.Value)}\n";
             }
             result += $"\nBody:\n";
-            
+
             try
             {
                 var jsonDoc = JsonDocument.Parse(responseContent);
@@ -294,7 +301,7 @@
             {
                 result += responseContent;
             }
-            
+
             Logger.LogInformation("API call to {Endpoint} completed with status {StatusCode}", selectedEndpoint, response.StatusCode);
         }
         catch (Exception ex)
@@ -316,7 +323,7 @@
             errorMessage = "Page name is required";
             return;
         }
-        
+
         isLoading = true;
         errorMessage = string.Empty;
         result = string.Empty;
@@ -326,9 +333,9 @@
         {
             await AuthService.WaitForInitializationAsync();
             var token = await AuthService.GetTokenAsync();
-            
+
             var httpClient = HttpClientFactory.CreateClient("ApiClient");
-            
+
             if (!string.IsNullOrEmpty(token))
             {
                 httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
@@ -385,7 +392,7 @@
         {
             result = await AuthService.DebugAuthAsync();
             result += $"\n\n🔐 IsAuthenticated: {AuthService.IsAuthenticated}";
-            
+
             if (AuthService.CurrentUser != null)
             {
                 result += $"\n👤 Current User: {AuthService.CurrentUser.Username}";
@@ -422,14 +429,14 @@
             if (file != null)
             {
                 quadIconFile = file;
-                
+
                 // Create preview
                 var buffer = new byte[file.Size];
                 using var stream = file.OpenReadStream();
                 await stream.ReadAsync(buffer);
                 var base64 = Convert.ToBase64String(buffer);
                 quadIconPreview = $"data:{file.Type ?? "image/png"};base64,{base64}";
-                
+
                 StateHasChanged();
             }
         }
@@ -448,14 +455,39 @@
             if (file != null)
             {
                 wideIconFile = file;
-                
+
                 // Create preview
                 var buffer = new byte[file.Size];
                 using var stream = file.OpenReadStream();
                 await stream.ReadAsync(buffer);
                 var base64 = Convert.ToBase64String(buffer);
                 wideIconPreview = $"data:{file.Type ?? "image/png"};base64,{base64}";
-                
+
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading wide icon: {ex.Message}";
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnFileChanged(FileChangedEventArgs e)
+    {
+        try
+        {
+            var file = e.Files.FirstOrDefault();
+            if (file != null)
+            {
+                File = file;
+
+                // Create preview
+                var buffer = new byte[file.Size];
+                using var stream = file.OpenReadStream();
+                await stream.ReadAsync(buffer);
+                var base64 = Convert.ToBase64String(buffer);
+
                 StateHasChanged();
             }
         }
@@ -473,7 +505,7 @@
             errorMessage = "Page name is required";
             return;
         }
-        
+
         isLoading = true;
         errorMessage = string.Empty;
         result = string.Empty;
@@ -482,18 +514,19 @@
         try
         {
             var dto = new CreatePageWithIconsDto
-            {
-                userId = AuthService.CurrentUser.Id,
-                Name = iconPageName.Trim(),
-                Description = iconPageDescription?.Trim(),
-                Content = iconPageContent?.Trim(),
-                Tags = iconPageTags?.Trim(),
-                QuadIcon = quadIconFile != null ? new FileEntryAdapter(quadIconFile) : null,
-                WideIcon = wideIconFile != null ? new FileEntryAdapter(wideIconFile) : null
-            };
+                {
+                    userId = AuthService.CurrentUser.Id,
+                    Name = iconPageName.Trim(),
+                    Description = iconPageDescription?.Trim(),
+                    Content = iconPageContent?.Trim(),
+                    Tags = iconPageTags?.Trim(),
+                    QuadIcon = quadIconFile != null ? new FileEntryAdapter(quadIconFile) : null,
+                    WideIcon = wideIconFile != null ? new FileEntryAdapter(wideIconFile) : null,
+                    File = File != null ? new FileEntryAdapter(File) : null
+                };
 
             var createdPage = await ContentService.CreatePageWithIconsAsync(dto);
-            
+
             if (createdPage != null)
             {
                 result = $"✅ Page '{iconPageName}' created successfully with icons!\n\n";
@@ -503,7 +536,8 @@
                 result += $"Image URL: {createdPage.ImageId}\n";
                 result += $"Tags: {string.Join(", ", createdPage.Tags)}\n";
                 result += $"Created At: {createdPage.CreatedAt}\n";
-                
+                result += $"File id: {createdPage.File}\n";
+
                 // Clear form
                 iconPageName = string.Empty;
                 iconPageDescription = string.Empty;
@@ -541,12 +575,12 @@
         try
         {
             result = "🧪 Testing ContentApiService methods...\n\n";
-            
+
             // Test getting all tags
             result += "1. Testing GetAllTagsAsync():\n";
             var tags = await ContentService.GetAllTagsAsync();
             result += $"   Found {tags.Count()} tags: {string.Join(", ", tags)}\n\n";
-            
+
             // Test searching pages
             result += "2. Testing SearchPagesAsync():\n";
             var pages = await ContentService.SearchPagesAsync();
@@ -556,7 +590,7 @@
                 result += $"   - {page.Title} (ID: {page.Id})\n";
             }
             result += "\n";
-            
+
             // Test search with query
             result += "3. Testing SearchContentAsync() with pagination:\n";
             var searchResult = await ContentService.SearchContentAsync("", 1, 5);
@@ -567,13 +601,13 @@
                 result += $"   Items on this page: {searchResult.Items.Count}\n";
             }
             result += "\n";
-            
+
             // Test file URL generation
             result += "4. Testing GetFileUrl():\n";
             var sampleFileId = Guid.NewGuid();
             var fileUrl = ContentService.GetFileUrl(sampleFileId);
             result += $"   Sample file URL: {fileUrl}\n\n";
-            
+
             result += "✅ All ContentApiService methods tested successfully!";
         }
         catch (Exception ex)
