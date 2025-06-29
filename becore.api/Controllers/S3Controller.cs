@@ -1,6 +1,7 @@
 using System.Net;
 using becore.api.Models;
 using becore.api.Services;
+using becore.api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using File = becore.api.Scheme.System.File;
 
@@ -10,10 +11,10 @@ namespace becore.api.Controllers;
 [Route("api/s3")]
 public class S3Controller : ControllerBase
 {
-    private readonly FileS3Service _fileS3Service;
+    private readonly IFileS3Service _fileS3Service;
     private readonly ILogger<S3Controller> _logger;
 
-    public S3Controller(FileS3Service fileS3Service, ILogger<S3Controller> logger)
+    public S3Controller(IFileS3Service fileS3Service, ILogger<S3Controller> logger)
     {
         _fileS3Service = fileS3Service;
         _logger = logger;
