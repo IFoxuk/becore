@@ -13,6 +13,7 @@ public class Page : DbEntity
     [MaxLength(2048)] public string? Content { get; set; }
     public Guid? QuadIcon { get; set; }
     public Guid? WideIcon { get; set; }
+    public PackType PageType { get; set; } = PackType.Data;
     [NotMapped] public List<Pack> Packs { get; set; } = [];
     
     // Навигационные свойства для тегов
@@ -54,6 +55,16 @@ public class Page : DbEntity
             DownloadCount = 0
         };
     }
+
+    public static implicit operator ContentDto(Page page) => new()
+    {
+        Id = page.Id,
+        AuthorName = "BECore",
+        Name = page.Name,
+        Description = page.Description,
+        Tags = page.PageTags.Select(x => (TagDto)x).ToList(),
+    };
+    
     
     /// <summary>
     /// Конвертация CreatePageDto в Page

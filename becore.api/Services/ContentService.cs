@@ -1,6 +1,7 @@
 ﻿using becore.api.Scheme;
 using Microsoft.EntityFrameworkCore;
 using becore.shared.DTOs;
+using Microsoft.AspNetCore.Mvc;
 
 public class ContentService
 {
@@ -11,6 +12,11 @@ public class ContentService
         _context = context;
     }
 
+    public async Task<int> GetTotalPagesCountAsync() => await _context.Pages.CountAsync();
+    public async Task<int> GetTotalContentCountAsync(ContentFilter filter) => 
+        await _context.Pages.Include(x => x.PageTags)
+            .CountAsync(x => (uint)x.PageType == filter.ContentType);
+    
     public async Task<IEnumerable<Page>> GetPagesAsync(PageFilterDto? filter = null)
     {
         var query = _context.Pages
@@ -37,6 +43,28 @@ public class ContentService
         return await query.ToListAsync();
     }
 
+    public async Task<IEnumerable<Page>> GetContentPagesAsync(ContentFilter? filter = null)
+    {
+        if (filter == null)
+            return await _context.Pages.Include(p => p.PageTags).ToListAsync();
+        
+        var query = _context.Pages.Include(p => p.PageTags)
+            .Where(x => (ushort)x.PageType == filter.ContentType)
+            .Skip(filter.Position)
+            .Take(filter.Count)
+            .AsQueryable();
+        
+        if (filter.Name is { Length: > 0 })
+            query = query.Where(page => page.Name.Contains(filter.Name, StringComparison.OrdinalIgnoreCase));
+        
+        // Выбираем элементы, где есть все выбранные теги
+        if (filter.TagId.Count > 0)
+            query = query.Where(page => filter.TagId.All(
+                    selectedTagGuid => page.PageTags.Select(t => t.Id).Contains(selectedTagGuid)));
+        
+        return await query.ToListAsync();
+    }
+    
     public async Task<Page?> GetPageByIdAsync(Guid id)
     {
         return await _context.Pages

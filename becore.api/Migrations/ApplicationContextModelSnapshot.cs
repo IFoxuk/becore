@@ -369,6 +369,9 @@ namespace becore.api.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
+                    b.Property<int>("PageType")
+                        .HasColumnType("integer");
+
                     b.Property<Guid?>("QuadIcon")
                         .HasColumnType("uuid");
 

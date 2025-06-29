@@ -32,8 +32,31 @@ namespace becore.api.Controllers.ContentController
         public async Task<ActionResult<IEnumerable<PageDto>>> GetPages([FromQuery] PageFilterDto filter)
         {
             var pages = await _contentService.GetPagesAsync(filter);
-            var pageDtos = pages.Select(page => (PageDto)page);
-            return Ok(pageDtos);
+            var pageDto = pages.Select(page => (PageDto)page);
+            return Ok(pageDto);
+        }
+
+        [HttpPatch("content")]
+        public async Task<ActionResult<ContentResponse>> GetContent([FromBody] ContentFilter filter)
+        {
+            var pages = await _contentService.GetContentPagesAsync(filter);
+            var contentDto = pages.Select(page => (ContentDto)page);
+            var count = await _contentService.GetTotalContentCountAsync(filter);
+            var contentResponse = new ContentResponse()
+            {
+                Content = contentDto,
+                Filter = filter,
+                TotalCount = count
+            };
+            return Ok(contentResponse);
+        }
+
+        [HttpGet("contentCount")]
+        public async Task<ActionResult<int>> GetContentCountAsync(ushort contentType)
+        {
+            var count = await _contentService.GetTotalContentCountAsync(new ContentFilter()
+                { ContentType = contentType });
+            return Ok(count);
         }
 
         [HttpGet("all")]
