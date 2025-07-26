@@ -226,6 +226,85 @@ namespace becore.api.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("becore.api.Scheme.AdditionPage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid?>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contentMakerId");
+
+                    b.Property<Guid?>("QuadIcon")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("TeamId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("teamId");
+
+                    b.Property<Guid?>("WideIcon")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.HasIndex("TeamId");
+
+                    b.ToTable("AddonPage");
+                });
+
+            modelBuilder.Entity("becore.api.Scheme.BehaviourFile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("file");
+
+                    b.Property<Guid>("BehaviourPageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("behaviourPageId");
+
+                    b.Property<bool>("Confirmed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("confirmed");
+
+                    b.Property<DateTime>("UploadDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("uploaded");
+
+                    b.HasKey("Id", "BehaviourPageId");
+
+                    b.HasIndex("BehaviourPageId");
+
+                    b.ToTable("BehaviourFile");
+                });
+
+            modelBuilder.Entity("becore.api.Scheme.BehaviourPage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BehaviourPage");
+                });
+
             modelBuilder.Entity("becore.api.Scheme.Packs.AddonPack", b =>
                 {
                     b.Property<Guid>("Id")
@@ -407,6 +486,45 @@ namespace becore.api.Migrations
                     b.ToTable("PageTag");
                 });
 
+            modelBuilder.Entity("becore.api.Scheme.ResourceFile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("file");
+
+                    b.Property<Guid>("ResourcePageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("resourcePageId");
+
+                    b.Property<bool>("Confirmed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("confirmed");
+
+                    b.Property<DateTime>("UploadDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("uploaded");
+
+                    b.HasKey("Id", "ResourcePageId");
+
+                    b.HasIndex("ResourcePageId");
+
+                    b.ToTable("ResourceFile");
+                });
+
+            modelBuilder.Entity("becore.api.Scheme.ResourcePage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("Resolution")
+                        .HasColumnType("integer")
+                        .HasColumnName("resolution");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ResourcePage");
+                });
+
             modelBuilder.Entity("becore.api.Scheme.System.File", b =>
                 {
                     b.Property<Guid>("Id")
@@ -429,6 +547,67 @@ namespace becore.api.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("File");
+                });
+
+            modelBuilder.Entity("becore.api.Scheme.Workgroup.ContentMaker", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("userId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("ContentMaker");
+                });
+
+            modelBuilder.Entity("becore.api.Scheme.Workgroup.Team", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Team");
+                });
+
+            modelBuilder.Entity("becore.api.Scheme.Workgroup.TeamMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
+
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("teamId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TeamId");
+
+                    b.ToTable("TeamMember");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -480,6 +659,43 @@ namespace becore.api.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("becore.api.Scheme.AdditionPage", b =>
+                {
+                    b.HasOne("becore.api.Scheme.Workgroup.ContentMaker", "Owner")
+                        .WithMany("Addons")
+                        .HasForeignKey("OwnerId");
+
+                    b.HasOne("becore.api.Scheme.Workgroup.Team", "Team")
+                        .WithMany("Addons")
+                        .HasForeignKey("TeamId");
+
+                    b.Navigation("Owner");
+
+                    b.Navigation("Team");
+                });
+
+            modelBuilder.Entity("becore.api.Scheme.BehaviourFile", b =>
+                {
+                    b.HasOne("becore.api.Scheme.BehaviourPage", "BehaviourPage")
+                        .WithMany("Files")
+                        .HasForeignKey("BehaviourPageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BehaviourPage");
+                });
+
+            modelBuilder.Entity("becore.api.Scheme.BehaviourPage", b =>
+                {
+                    b.HasOne("becore.api.Scheme.AdditionPage", "AdditionPage")
+                        .WithOne("BehaviourPage")
+                        .HasForeignKey("becore.api.Scheme.BehaviourPage", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AdditionPage");
                 });
 
             modelBuilder.Entity("becore.api.Scheme.Packs.AddonPack", b =>
@@ -537,6 +753,28 @@ namespace becore.api.Migrations
                     b.Navigation("Page");
                 });
 
+            modelBuilder.Entity("becore.api.Scheme.ResourceFile", b =>
+                {
+                    b.HasOne("becore.api.Scheme.ResourcePage", "ResourcePage")
+                        .WithMany("Files")
+                        .HasForeignKey("ResourcePageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ResourcePage");
+                });
+
+            modelBuilder.Entity("becore.api.Scheme.ResourcePage", b =>
+                {
+                    b.HasOne("becore.api.Scheme.AdditionPage", "AdditionPage")
+                        .WithOne("ResourcePage")
+                        .HasForeignKey("becore.api.Scheme.ResourcePage", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AdditionPage");
+                });
+
             modelBuilder.Entity("becore.api.Scheme.System.File", b =>
                 {
                     b.HasOne("becore.api.Models.ApplicationUser", "User")
@@ -546,9 +784,75 @@ namespace becore.api.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("becore.api.Scheme.Workgroup.ContentMaker", b =>
+                {
+                    b.HasOne("becore.api.Models.ApplicationUser", "User")
+                        .WithOne("ContentMaker")
+                        .HasForeignKey("becore.api.Scheme.Workgroup.ContentMaker", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("becore.api.Scheme.Workgroup.TeamMember", b =>
+                {
+                    b.HasOne("becore.api.Scheme.Workgroup.ContentMaker", "ContentMaker")
+                        .WithOne("TeamMember")
+                        .HasForeignKey("becore.api.Scheme.Workgroup.TeamMember", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("becore.api.Scheme.Workgroup.Team", "Team")
+                        .WithMany("Members")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ContentMaker");
+
+                    b.Navigation("Team");
+                });
+
+            modelBuilder.Entity("becore.api.Models.ApplicationUser", b =>
+                {
+                    b.Navigation("ContentMaker");
+                });
+
+            modelBuilder.Entity("becore.api.Scheme.AdditionPage", b =>
+                {
+                    b.Navigation("BehaviourPage");
+
+                    b.Navigation("ResourcePage");
+                });
+
+            modelBuilder.Entity("becore.api.Scheme.BehaviourPage", b =>
+                {
+                    b.Navigation("Files");
+                });
+
             modelBuilder.Entity("becore.api.Scheme.Page", b =>
                 {
                     b.Navigation("PageTags");
+                });
+
+            modelBuilder.Entity("becore.api.Scheme.ResourcePage", b =>
+                {
+                    b.Navigation("Files");
+                });
+
+            modelBuilder.Entity("becore.api.Scheme.Workgroup.ContentMaker", b =>
+                {
+                    b.Navigation("Addons");
+
+                    b.Navigation("TeamMember");
+                });
+
+            modelBuilder.Entity("becore.api.Scheme.Workgroup.Team", b =>
+                {
+                    b.Navigation("Addons");
+
+                    b.Navigation("Members");
                 });
 #pragma warning restore 612, 618
         }

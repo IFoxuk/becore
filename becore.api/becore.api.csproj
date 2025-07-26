@@ -25,8 +25,4 @@
       <ProjectReference Include="..\becore.shared\becore.shared.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="DTOs\" />
-    </ItemGroup>
-
 </Project>
